@@ -1,0 +1,44 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "windows": {
+                "command": "g++",
+                "args": [
+                    "-g",
+                    "-std=c++17",
+                    "-I${workspaceFolder}/include",
+                    "-L${workspaceFolder}/lib",
+                    "${workspaceFolder}/src/main.cpp",
+                    "${workspaceFolder}/src/glad.c",
+                    "-lopengl32",
+                    "-static",
+                    "-lglfw3dll",
+                    "-o",
+                    "${workspaceFolder}/output/chess.exe"
+                ]
+            },
+            "linux": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "make"
+                ]
+            },
+            "osx": {
+                "command": "bash",
+                "args": [
+                    "-c",
+                    "make"
+                ]
+            },
+            "problemMatcher": []
+        }
+    ]
+}
