@@ -25,10 +25,22 @@
                 ]
             },
             "linux": {
-                "command": "bash",
+                "command": "x86_64-w64-mingw32-g++",
                 "args": [
-                    "-c",
-                    "make"
+                    "-g",
+                    "-std=c++17",
+                    "-I${workspaceFolder}/include",
+                    "-L${workspaceFolder}/lib",
+                    "${workspaceFolder}/src/main.cpp",
+                    "${workspaceFolder}/src/board.cpp",
+                    "${workspaceFolder}/src/glad.c",
+                    "-lopengl32",
+                    "-static",
+                    "-lglfw3dll",
+                    //"-o",
+                    //"${workspaceFolder}/output/chess.exe",
+                    "-o",
+                    "${workspaceFolder}/output/chess.out"
                 ]
             },
             "osx": {
