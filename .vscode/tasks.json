@@ -16,6 +16,7 @@
                     "-I${workspaceFolder}/include",
                     "-L${workspaceFolder}/lib",
                     "${workspaceFolder}/src/main.cpp",
+                    "${workspaceFolder}/src/board.cpp",
                     "${workspaceFolder}/src/glad.c",
                     "-lopengl32",
                     "-static",

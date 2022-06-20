@@ -87,7 +87,7 @@ void Piece :: condCheck(short addX,short addY)
                 tempX+=addX;
                 tempY+=addY;
             }   
-            if(parent.getPiece(tempX,tempY)%10==colourCond)
+            if(parent.getPiece(tempX,tempY)%10==colourCond && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
             {
                 legalMoves[legalMovesAmmount]={tempX,tempY};
                 ++legalMovesAmmount;
@@ -106,7 +106,7 @@ void Piece :: updateLegalMoves()
 
     switch(type)
     {
-        case 10: case 11:
+        case 10:
             if(parent.getPiece(posX,posY+1)==0)
             {
                 legalMoves[legalMovesAmmount]={posX,posY+1};
@@ -122,9 +122,31 @@ void Piece :: updateLegalMoves()
                 legalMoves[legalMovesAmmount]={posX+1,posY+1};
                 ++legalMovesAmmount;
             }
-            if(posX!=0) if(parent.getPiece(posX-1,posY+1)!=0 && parent.getPiece(posX+1,posY+1)%10==colourCond)
+            if(posX!=0) if(parent.getPiece(posX-1,posY+1)!=0 && parent.getPiece(posX-1,posY+1)%10==colourCond)
             {
                 legalMoves[legalMovesAmmount]={posX-1,posY+1};
+                ++legalMovesAmmount;
+            }
+            break;
+        case 11:
+            if(parent.getPiece(posX,posY-1)==0)
+            {
+                legalMoves[legalMovesAmmount]={posX,posY-1};
+                ++legalMovesAmmount;
+            }
+            if(parent.getPiece(posX,posY-2)==0 && posY==6)
+            {
+                legalMoves[legalMovesAmmount]={posX,posY-2};
+                ++legalMovesAmmount;
+            }
+            if(posX!=0) if(parent.getPiece(posX-1,posY-1)!=0 && parent.getPiece(posX-1,posY-1)%10==colourCond)
+            {
+                legalMoves[legalMovesAmmount]={posX-1,posY-1};
+                ++legalMovesAmmount;
+            }
+            if(posX!=7) if(parent.getPiece(posX+1,posY-1)!=0 && parent.getPiece(posX+1,posY-1)%10==colourCond)
+            {
+                legalMoves[legalMovesAmmount]={posX+1,posY-1};
                 ++legalMovesAmmount;
             }
             break;
@@ -181,6 +203,7 @@ void Piece :: movePiece(short x, short y)
 {    
     parent.updateBoard(x,y,type);
     parent.updateBoard(posX,posY,0);
+
     posX=x;
     posY=y;
     updateLegalMoves();
