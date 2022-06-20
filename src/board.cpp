@@ -65,445 +65,126 @@ void Board ::Debug()
     std::cout<<"\n";
 }
 
-void PawnW :: updateLegalMoves()
-{
-    legalMovesAmmount=0;
-    if(parent.getPiece(posX,posY+1)==0)
-    {
-        legalMoves[legalMovesAmmount]={posX,posY+1};
-        ++legalMovesAmmount;
-    }
-    if(parent.getPiece(posX,posY+2)==0 && posY==1)
-    {
-        legalMoves[legalMovesAmmount]={posX,posY+2};
-        ++legalMovesAmmount;
-    }
-    if(posX!=7) if(parent.getPiece(posX+1,posY+1)!=0)
-    {
-        legalMoves[legalMovesAmmount]={posX+1,posY+1};
-        ++legalMovesAmmount;
-    }
-    if(posX!=0) if(parent.getPiece(posX-1,posY+1)!=0)
-    {
-        legalMoves[legalMovesAmmount]={posX-1,posY+1};
-        ++legalMovesAmmount;
-    }
-    
-}
-void PawnW :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,10);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
 
-void PawnB :: updateLegalMoves()
-{
-    legalMovesAmmount=0;
-    if(parent.getPiece(posX,posY-1)==0)
-    {
-        legalMoves[legalMovesAmmount]={posX,posY-1};
-        ++legalMovesAmmount;
-    }
-    if(parent.getPiece(posX,posY-2)==0 && posY==6)
-    {
-        legalMoves[legalMovesAmmount]={posX,posY-2};
-        ++legalMovesAmmount;
-    }
-    if(posX!=7) if(parent.getPiece(posX+1,posY-1)!=0)
-    {
-        legalMoves[legalMovesAmmount]={posX+1,posY-1};
-        ++legalMovesAmmount;
-    }
-    if(posX!=0) if(parent.getPiece(posX-1,posY-1)!=0)
-    {
-        legalMoves[legalMovesAmmount]={posX-1,posY-1};
-        ++legalMovesAmmount;
-    }
-    
-}
-
-void PawnB :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,11);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
-
-void KnightW ::condCheck(short addX,short addY)
+void Piece :: condCheck(short addX,short addY)
 {
     short tempX=posX+addX,tempY=posY+addY;
-    if((parent.getPiece(tempX,tempY)==0 || parent.getPiece(tempX,tempY)%10==1) && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+    switch(type)
     {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-    }   
+        case 20: case 21: case 60: case 61:
+            
+            if((parent.getPiece(tempX,tempY)==0 || parent.getPiece(tempX,tempY)%10==colourCond) && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+            {
+                legalMoves[legalMovesAmmount]={tempX,tempY};
+                ++legalMovesAmmount;
+            }
+            break;
+        default:    
+            while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+            {
+                legalMoves[legalMovesAmmount]={tempX,tempY};
+                ++legalMovesAmmount;
+                tempX+=addX;
+                tempY+=addY;
+            }   
+            if(parent.getPiece(tempX,tempY)%10==colourCond)
+            {
+                legalMoves[legalMovesAmmount]={tempX,tempY};
+                ++legalMovesAmmount;
+            }   
+            break;         
+           
+
+    }
+
 }
 
 
-
-void KnightW:: updateLegalMoves()
+void Piece :: updateLegalMoves()
 {
     legalMovesAmmount=0;
-    
-    condCheck(1,2);
-    condCheck(1,-2);
-    condCheck(-1,2);
-    condCheck(-1,-2);
 
-    condCheck(2,1);
-    condCheck(2,-1);
-    condCheck(-2,1);
-    condCheck(-2,-1);
-}
-
-void KnightW :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,20);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
-
-void KnightB ::condCheck(short addX,short addY)
-{
-    short tempX=posX+addX,tempY=posY+addY;
-    if(parent.getPiece(tempX,tempY)%10==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+    switch(type)
     {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-    }   
-}
+        case 10: case 11:
+            if(parent.getPiece(posX,posY+1)==0)
+            {
+                legalMoves[legalMovesAmmount]={posX,posY+1};
+                ++legalMovesAmmount;
+            }
+            if(parent.getPiece(posX,posY+2)==0 && posY==1)
+            {
+                legalMoves[legalMovesAmmount]={posX,posY+2};
+                ++legalMovesAmmount;
+            }
+            if(posX!=7) if(parent.getPiece(posX+1,posY+1)!=0 && parent.getPiece(posX+1,posY+1)%10==colourCond)
+            {
+                legalMoves[legalMovesAmmount]={posX+1,posY+1};
+                ++legalMovesAmmount;
+            }
+            if(posX!=0) if(parent.getPiece(posX-1,posY+1)!=0 && parent.getPiece(posX+1,posY+1)%10==colourCond)
+            {
+                legalMoves[legalMovesAmmount]={posX-1,posY+1};
+                ++legalMovesAmmount;
+            }
+            break;
+        case 20: case 21:
+            condCheck(1,2);
+            condCheck(1,-2);
+            condCheck(-1,2);
+            condCheck(-1,-2);
 
+            condCheck(2,1);
+            condCheck(2,-1);
+            condCheck(-2,1);
+            condCheck(-2,-1);   
+            break;
+        case 30: case 31:
+            condCheck(1,1);
+            condCheck(1,-1);
+            condCheck(-1,1);
+            condCheck(-1,-1);  
+            break;
+        case 40: case 41:
+            condCheck(1,0);
+            condCheck(-1,0);
+            condCheck(0,1);
+            condCheck(0,-1);
+            break;
+        case 50: case 51:
+            condCheck(1,1);
+            condCheck(1,-1);
+            condCheck(-1,1);
+            condCheck(-1,-1);
 
-void KnightB:: updateLegalMoves()
-{
-    legalMovesAmmount=0;
-    
-    condCheck(1,2);
-    condCheck(1,-2);
-    condCheck(-1,2);
-    condCheck(-1,-2);
+            condCheck(1,0);
+            condCheck(-1,0);
+            condCheck(0,1);
+            condCheck(0,-1);
+            break;  
+        case 60: case 61:
+            condCheck(1,1);
+            condCheck(1,-1);
+            condCheck(-1,1);
+            condCheck(-1,-1);
 
-    condCheck(2,1);
-    condCheck(2,-1);
-    condCheck(-2,1);
-    condCheck(-2,-1);
-}
-
-void KnightB :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,21);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
-
-void BishopW ::condCheck(short addX,short addY)
-{
-    short tempX=posX+addX,tempY=posY+addY;
-    while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-        tempX+=addX;
-        tempY+=addY;
-    }   
-    if(parent.getPiece(tempX,tempY)%10==1)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
+            condCheck(1,0);
+            condCheck(-1,0);
+            condCheck(0,1);
+            condCheck(0,-1);
+            break;
     }
 }
 
-void BishopW :: updateLegalMoves()
-{
-    legalMovesAmmount=0;
 
-    condCheck(1,1);
-    condCheck(1,-1);
-    condCheck(-1,1);
-    condCheck(-1,-1);
+void Piece :: movePiece(short x, short y)
+{    
+    parent.updateBoard(x,y,type);
+    parent.updateBoard(posX,posY,0);
+    posX=x;
+    posY=y;
+    updateLegalMoves();
     
 }
 
-void BishopW :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,30);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
 
-void BishopB ::condCheck(short addX,short addY)
-{
-    short tempX=posX+addX,tempY=posY+addY;
-    while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-        tempX+=addX;
-        tempY+=addY;
-    }   
-    if(parent.getPiece(tempX,tempY)%10==0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-    }
-}
-
-void BishopB :: updateLegalMoves()
-{
-    legalMovesAmmount=0;
-    
-    condCheck(1,1);
-    condCheck(1,-1);
-    condCheck(-1,1);
-    condCheck(-1,-1);
-}
-
-void BishopB :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,31);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
-
-
-void RookW ::condCheck(short addX,short addY)
-{
-    short tempX=posX+addX,tempY=posY+addY;
-    while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-        tempX+=addX;
-        tempY+=addY;
-    }   
-    if(parent.getPiece(tempX,tempY)%10==1)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-    }
-}
-
-
-void RookW :: updateLegalMoves()
-{
-    legalMovesAmmount=0;
-
-    condCheck(1,0);
-    condCheck(-1,0);
-    condCheck(0,1);
-    condCheck(0,-1);
-
-}
-
-void RookW :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,40);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
-
-void RookB ::condCheck(short addX,short addY)
-{
-    short tempX=posX+addX,tempY=posY+addY;
-    while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-        tempX+=addX;
-        tempY+=addY;
-    }   
-    if(parent.getPiece(tempX,tempY)%10==0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-    }
-}
-
-void RookB :: updateLegalMoves()
-{
-    legalMovesAmmount=0;
-
-
-    condCheck(1,0);
-    condCheck(-1,0);
-    condCheck(0,1);
-    condCheck(0,-1);
-}
-
-void RookB :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,41);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
-
-void QueenW ::condCheck(short addX,short addY)
-{
-    short tempX=posX+addX,tempY=posY+addY;
-    while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-        tempX+=addX;
-        tempY+=addY;
-    }   
-    if(parent.getPiece(tempX,tempY)%10==1)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-    }
-}
-
-void QueenW :: updateLegalMoves()
-{
-    legalMovesAmmount=0;
-
-
-    condCheck(1,0);
-    condCheck(-1,0);
-    condCheck(0,1);
-    condCheck(0,-1);
-
-    condCheck(1,1);
-    condCheck(1,-1);
-    condCheck(-1,1);
-    condCheck(-1,-1);
-
-}
-
-void QueenW :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,50);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
-
-void QueenB ::condCheck(short addX,short addY)
-{
-    short tempX=posX+addX,tempY=posY+addY;
-    while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-        tempX+=addX;
-        tempY+=addY;
-    }   
-    if(parent.getPiece(tempX,tempY)%10==0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-    }
-}
-
-void QueenB :: updateLegalMoves()
-{
-    legalMovesAmmount=0;
-
-
-    condCheck(1,0);
-    condCheck(-1,0);
-    condCheck(0,1);
-    condCheck(0,-1);
-
-    condCheck(1,1);
-    condCheck(1,-1);
-    condCheck(-1,1);
-    condCheck(-1,-1);
-
-}
-
-void QueenB :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,51);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
-
-void KingW ::condCheck(short addX,short addY)
-{
-    short tempX=posX+addX,tempY=posY+addY;
-    if((parent.getPiece(tempX,tempY)==0 || parent.getPiece(tempX,tempY)%10==1) && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-    }    
-}
-
-void KingW :: updateLegalMoves()
-{
-    legalMovesAmmount=0;
-    
-    condCheck(1,0);
-    condCheck(-1,0);
-    condCheck(0,1);
-    condCheck(0,-1);
-
-    condCheck(1,1);
-    condCheck(1,-1);
-    condCheck(-1,1);
-    condCheck(-1,-1);
-}
-
-void KingW :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,60);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
-
-void KingB ::condCheck(short addX,short addY)
-{
-    short tempX=posX+addX,tempY=posY+addY;
-    if(parent.getPiece(tempX,tempY)%10==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-    {
-        legalMoves[legalMovesAmmount]={tempX,tempY};
-        ++legalMovesAmmount;
-    }   
-}
-
-void KingB :: updateLegalMoves()
-{
-    legalMovesAmmount=0;
-    
-    condCheck(1,0);
-    condCheck(-1,0);
-    condCheck(0,1);
-    condCheck(0,-1);
-
-    condCheck(1,1);
-    condCheck(1,-1);
-    condCheck(-1,1);
-    condCheck(-1,-1);
-}
-
-void KingB :: movePiece(short x, short y)
-{
-    parent.updateBoard(x,y,61);
-    parent.updateBoard(posX,posY,0);
-    posX=x;
-    posY=y;
-    updateLegalMoves();
-}
