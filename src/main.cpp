@@ -161,7 +161,7 @@ int main()
     }
 	
 	double windowPosX,windowPosY;
-	bool onBoard,onLegal,isSelecting=false,allowClick=true;
+	bool onBoard,onLegal,isSelecting=false;
 	int currentSelection=-1,mouseCall,legalSelection=-1,previousSelection=-1;
 
 	int currentTime,previousTime=checktime,blockade;
@@ -210,146 +210,167 @@ int main()
 		windowPosY*=2;
 		windowPosY/=resolutionY;
 		//std::cout<<windowPosX<<" "<<windowPosY<<"\n";
-		onBoard=false;
 		if(baseX1<=windowPosX && -baseX1>=windowPosX && baseY1<=windowPosY && -baseY1>=windowPosY) onBoard=true;
-
-		if(!isSelecting) 
-		{
-			previousSelection=currentSelection;
-			for(int i=0;i<32;++i)
-			{
-
-				if( baseX1+chessBoard.Pieces[i].posX*incrementX<=windowPosX && baseX2+chessBoard.Pieces[i].posX*incrementX>=windowPosX &&
-				 	baseY1+chessBoard.Pieces[i].posY*incrementY<=windowPosY && baseY2+chessBoard.Pieces[i].posY*incrementY>=windowPosY &&
-					chessBoard.Pieces[i].isOnBoard)
-				 {
-					if(i!=currentSelection)
-					{
-						//std::cout<<i<<"\n";
-						currentSelection=i;
-						allowClick=true;
-					}
-				 }
-			}
-			if(previousSelection==currentSelection) 
-			{
-				currentSelection=-1;
-				allowClick=true;
-			}
-		}
-		onLegal=false;
-		legalSelection=-1;
-		if(legalsVertices.size()==0)
-		{
-			isSelecting=false;
-			allowClick=true;
-		}
-		for(int i=0;i<legalsVertices.size();++i)
-		{
-
-			if( legalsVertices[i].x1<=windowPosX && legalsVertices[i].x3>=windowPosX &&
-			 	legalsVertices[i].y1<=windowPosY && legalsVertices[i].y3>=windowPosY)
-			{
-				onLegal=true;
-				legalSelection=i;
-				allowClick=true;
-			}
-		}
-
 		mouseCall = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 		currentTime=checktime;
-		if (mouseCall == GLFW_PRESS && onBoard && currentTime>=previousTime+tickspersecond && allowClick)
+		if (mouseCall == GLFW_PRESS && onBoard && currentTime>=previousTime+tickspersecond)
 		{	
-			allowClick=false;
 			previousTime=currentTime;
-			std::cout<<currentSelection<<" "<<onLegal<<" "<<chessBoard.Pieces[currentSelection].legalMovesAmmount<<"\n";
-			if(currentSelection==-1)
+
+			if(!isSelecting)
 			{
-				legalsVertices.clear();
-				legalsIndices.clear();
-				isSelecting=false;
-				allowClick=true;
-			}
-			if(onLegal)
-			{
-				int tempPos1=chessBoard.Pieces[currentSelection].legalMoves[legalSelection].first,
-					tempPos2=chessBoard.Pieces[currentSelection].legalMoves[legalSelection].second;
+				currentSelection=-1;
 				for(int i=0;i<32;++i)
-    			{
-    			    if(chessBoard.Pieces[i].isOnBoard && i!=currentSelection)
-    			    {
-    			        if(chessBoard.Pieces[i].posX==tempPos1 && chessBoard.Pieces[i].posY==tempPos2)
-    			        {
-    			            chessBoard.Pieces[i].isOnBoard=false;
-							pieceVertices[i]=
-							{
-								0.0f,0.0f,0.0f,
-								0.0f,0.0f,0.0f,
-								0.0f,0.0f,0.0f,
-								0.0f,0.0f,0.0f
-							};
+				{
+
+					if( baseX1+chessBoard.Pieces[i].posX*incrementX<=windowPosX && baseX2+chessBoard.Pieces[i].posX*incrementX>=windowPosX &&
+					 	baseY1+chessBoard.Pieces[i].posY*incrementY<=windowPosY && baseY2+chessBoard.Pieces[i].posY*incrementY>=windowPosY &&
+						chessBoard.Pieces[i].isOnBoard)
+					 {
+						if(i!=currentSelection)
+						{
+							//std::cout<<i<<"\n";
+							currentSelection=i;
+							isSelecting=true;
 							break;
-    			        }    
-    			    }
-    			}
-				posX=tempPos1*incrementX;
-        		posY=tempPos2*incrementY;
-				pieceVertices[currentSelection] =
+						}
+					 }
+				}
+				if(currentSelection!=-1)
 				{
-					baseX1+posX+paddingX, baseY1+posY+paddingY, 0.0f, 
-        		    baseX1+posX+paddingX, baseY2+posY-paddingY, 0.0f,  
-        		    baseX2+posX-paddingX, baseY2+posY-paddingY, 0.0f,
-        		    baseX2+posX-paddingX, baseY1+posY+paddingY, 0.0f		
-				};
-				chessBoard.Pieces[currentSelection].movePiece(tempPos1,tempPos2);
-				onLegal=false;
-				isSelecting=false;
-				legalsVertices.clear();
-				legalsIndices.clear();
-				for(int j=0;j<32;++j) 
-				{
-					if(chessBoard.Pieces[j].isOnBoard) 
+					legalsVertices.clear();
+					legalsIndices.clear();
+					isSelecting=true;
+					for(int i=0;i<chessBoard.Pieces[currentSelection].legalMovesAmmount;++i)
 					{
-						chessBoard.Pieces[j].updateLegalMoves();
-					}
+						posX=chessBoard.Pieces[currentSelection].legalMoves[i].first*incrementX;
+        				posY=chessBoard.Pieces[currentSelection].legalMoves[i].second*incrementY;
+						legalsVertices.push_back
+						({
+							baseX1+posX, baseY1+posY, 0.0f, 
+        				    baseX1+posX, baseY2+posY, 0.0f,  
+        				    baseX2+posX, baseY2+posY, 0.0f,
+        				    baseX2+posX, baseY1+posY, 0.0f		
+						});
+					}	
+
+					for(unsigned int i=0;i<legalsVertices.size()*4;i+=4)
+    				{
+    				   legalsIndices.push_back({
+
+    				        i,i+1,i+3,
+    				        i+1,i+3,i+2
+						});
+
+    				}
 				}
 			}
-			else if(isSelecting && baseX1+chessBoard.Pieces[currentSelection].posX*incrementX<=windowPosX && baseX2+chessBoard.Pieces[currentSelection].posX*incrementX>=windowPosX &&
-			 	baseY1+chessBoard.Pieces[currentSelection].posY*incrementY<=windowPosY && baseY2+chessBoard.Pieces[currentSelection].posY*incrementY>=windowPosY)
+			else
 			{
-				legalsVertices.clear();
-				legalsIndices.clear();
-				isSelecting=false;
-			}
-			else if(currentSelection!=-1)
-			{	
-				legalsVertices.clear();
-				legalsIndices.clear();
-				//chessBoard.Pieces[currentSelection].updateLegalMoves();
-				for(int i=0;i<chessBoard.Pieces[currentSelection].legalMovesAmmount;++i)
+				legalSelection=-1;
+				if(legalsVertices.size()==0)
 				{
-					posX=chessBoard.Pieces[currentSelection].legalMoves[i].first*incrementX;
-        			posY=chessBoard.Pieces[currentSelection].legalMoves[i].second*incrementY;
-					legalsVertices.push_back
-					({
-						baseX1+posX, baseY1+posY, 0.0f, 
-        			    baseX1+posX, baseY2+posY, 0.0f,  
-        			    baseX2+posX, baseY2+posY, 0.0f,
-        			    baseX2+posX, baseY1+posY, 0.0f		
-					});
-				}	
+					isSelecting=false;
+				}
+				for(int i=0;i<legalsVertices.size();++i)
+				{
+				
+					if( legalsVertices[i].x1<=windowPosX && legalsVertices[i].x3>=windowPosX &&
+					 	legalsVertices[i].y1<=windowPosY && legalsVertices[i].y3>=windowPosY)
+					{
+						legalSelection=i;
+					}
+				}
 
-				for(unsigned int i=0;i<legalsVertices.size()*4;i+=4)
-    			{
-    			   legalsIndices.push_back({
+				if(legalSelection!=-1)
+				{
+					int tempPosX=chessBoard.Pieces[currentSelection].legalMoves[legalSelection].first,
+						tempPosY=chessBoard.Pieces[currentSelection].legalMoves[legalSelection].second;
+
+					short temp = chessBoard.getPieceNumber(tempPosX,tempPosY);
+					if(temp!=-1)
+					{
+						chessBoard.Pieces[temp].isOnBoard=false;
+						pieceVertices[temp]=
+						{
+							0.0f,0.0f,0.0f,
+							0.0f,0.0f,0.0f,
+							0.0f,0.0f,0.0f,
+							0.0f,0.0f,0.0f
+						};
+					}
 					
-    			        i,i+1,i+3,
-    			        i+1,i+3,i+2
-					});
-			
-    			}
-				isSelecting=true;
+					
+
+
+					posX=tempPosX*incrementX;
+        			posY=tempPosY*incrementY;
+					pieceVertices[currentSelection] =
+					{
+						baseX1+posX+paddingX, baseY1+posY+paddingY, 0.0f, 
+        			    baseX1+posX+paddingX, baseY2+posY-paddingY, 0.0f,  
+        			    baseX2+posX-paddingX, baseY2+posY-paddingY, 0.0f,
+        			    baseX2+posX-paddingX, baseY1+posY+paddingY, 0.0f		
+					};
+					chessBoard.Pieces[currentSelection].movePiece(tempPosX,tempPosY);
+					isSelecting=false;
+					legalsVertices.clear();
+					legalsIndices.clear();
+					if(legalSelection==chessBoard.Pieces[currentSelection].enPassantLegal)
+					{
+						if(chessBoard.Pieces[currentSelection].type%10==0)	temp = chessBoard.getPieceNumber(tempPosX,tempPosY-1);
+						else 												temp = chessBoard.getPieceNumber(tempPosX,tempPosY+1);
+
+						chessBoard.Pieces[temp].isOnBoard=false;
+						pieceVertices[temp]=
+						{
+							0.0f,0.0f,0.0f,
+							0.0f,0.0f,0.0f,
+							0.0f,0.0f,0.0f,
+							0.0f,0.0f,0.0f
+						};
+					}
+					else if(legalSelection==chessBoard.Pieces[currentSelection].castleLegal)
+					{
+						if(chessBoard.Pieces[currentSelection].type%10==0)	
+						{
+							if(tempPosX==2) {temp=12;  tempPosX=3; tempPosY=0;}
+							else 			{temp=13;  tempPosX=5; tempPosY=0;}
+						}
+						else
+						{
+							if(tempPosX==2) {temp=28;  tempPosX=3; tempPosY=7;}
+							else 			{temp=29;  tempPosX=5; tempPosY=7;}
+						} 												
+						posX=tempPosX*incrementX;
+        				posY=tempPosY*incrementY;
+						pieceVertices[temp] =
+						{
+							baseX1+posX+paddingX, baseY1+posY+paddingY, 0.0f, 
+        			    	baseX1+posX+paddingX, baseY2+posY-paddingY, 0.0f,  
+        			    	baseX2+posX-paddingX, baseY2+posY-paddingY, 0.0f,
+        			    	baseX2+posX-paddingX, baseY1+posY+paddingY, 0.0f		
+						};
+						chessBoard.Pieces[temp].movePiece(tempPosX,tempPosY);
+					}
+
+					for(int j=0;j<32;++j) 
+					{
+						if(chessBoard.Pieces[j].isOnBoard) 
+						{
+							chessBoard.Pieces[j].updateLegalMoves();
+						}
+					}
+				}
+				else
+				{
+					isSelecting=false;
+					legalsVertices.clear();
+					legalsIndices.clear();
+				}
+
 			}
+
 			
 		}
 

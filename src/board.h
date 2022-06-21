@@ -13,7 +13,8 @@ class Piece
         void condCheck(short addX,short addY);
         short colourCond;
     public:
-        short posX,posY,type,legalMovesAmmount;
+        short posX,posY,type,legalMovesAmmount,previousPosX=-1,previousPosY=-1,enPassantLegal=-1,castleLegal=-1;
+        int lastMoveNumber=-1;
         bool isOnBoard;
         std::vector <std::pair<short,short>> legalMoves;
         void updateLegalMoves();
@@ -68,6 +69,8 @@ class Board{
         
     public :
         short getPiece(short x,short y);
+        short getPieceNumber(short x,short y);
+        int turnNumber=0;
         void updateBoard(short x,short y,short value);
         void Debug();
 
