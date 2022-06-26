@@ -79,6 +79,125 @@ void Board ::Debug()
 }
 
 
+
+
+bool Piece :: checkCheck(short addX,short addY)
+{
+
+    short   kingOffsetX,kingOffsetY,tempPiece,tempPieceType,tempX,tempY;
+    if(type%10==0)
+    {
+        kingOffsetX=parent.Pieces[15].posX-posX;
+        kingOffsetY=parent.Pieces[15].posY-posY;
+    }
+    else
+    {
+        kingOffsetX=parent.Pieces[31].posX-posX;
+        kingOffsetY=parent.Pieces[31].posY-posY;
+    }
+
+    
+    if(kingOffsetX>0) addX=1;
+    else addX=-1;
+    if(kingOffsetY>0) addY=1;
+    else addY=-1;
+    
+    if(kingOffsetX==0) addX=0;
+    if(kingOffsetY==0) addY=0;
+
+
+
+
+    if( abs(kingOffsetX)==abs(kingOffsetY) || kingOffsetX==0 || kingOffsetY==0)
+    {
+        tempX=posX+addX;
+        tempY=posY+addY;
+        while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+        {
+            tempX+=addX;
+            tempY+=addY;
+        }   
+        if(colourCond==1)
+        {
+            addX=-addX;
+            addY=-addY;
+            std::cout<<parent.getPiece(tempX,tempY)<<"\n";
+            if(parent.getPiece(tempX,tempY)==60 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+            {
+                tempX=posX+addX;
+                tempY=posY+addY;
+                while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    tempX+=addX;
+                    tempY+=addY;
+                }
+                if(tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0) 
+                {
+                    tempPiece=parent.getPieceNumber(tempX,tempY);
+                    tempPieceType=parent.Pieces[tempPiece].type;
+                    if(abs(kingOffsetX)==abs(kingOffsetY) && (tempPieceType==21 || tempPieceType==51))
+                    {
+                        std::cout<<"ALERT";
+                        return true;
+                    }
+                    else if((kingOffsetX==0 || kingOffsetY==0) && (tempPieceType==51 || tempPieceType==41))
+                    {
+                        std::cout<<"ALERT";
+                        return true;
+                    }
+                }
+            }
+        }
+        else
+        {
+            addX=-addX;
+            addY=-addY;
+            if(parent.getPiece(tempX,tempY)==61 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+            {
+                tempX+=addX;
+                tempY+=addY;
+                while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    tempX+=addX;
+                    tempY+=addY;
+                }
+                if(tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0) 
+                {
+                    tempPiece=parent.getPieceNumber(tempX,tempY);
+                }
+                if(tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0) 
+                {
+                    tempPiece=parent.getPieceNumber(tempX,tempY);
+                    tempPieceType=parent.Pieces[tempPiece].type;
+                    if(abs(kingOffsetX)==abs(kingOffsetY) && (tempPieceType==20 || tempPieceType==50))
+                    {
+                        std::cout<<"ALERT";
+                        return true;
+                    }
+                    else if((kingOffsetX==0 || kingOffsetY==0) && (tempPieceType==50 || tempPieceType==40))
+                    {
+                        std::cout<<"ALERT";
+                        return true;
+                    }
+                }
+            }   
+        }
+          
+    }
+    
+
+
+    if(type==50) 
+    {
+         if( abs(kingOffsetX)==abs(kingOffsetY) || kingOffsetX==0 || kingOffsetY==0) std::cout<<kingOffsetX<<" "<<kingOffsetY<<"\n";
+    }
+    return false;
+}
+
+
+
+
+
 void Piece :: condCheck(short addX,short addY)
 {
     short tempX=posX+addX,tempY=posY+addY;
@@ -97,6 +216,7 @@ void Piece :: condCheck(short addX,short addY)
             {
                 legalMoves[legalMovesAmmount]={tempX,tempY};
                 ++legalMovesAmmount;
+                if(type==50) checkCheck(addX,addY);
                 tempX+=addX;
                 tempY+=addY;
             }   

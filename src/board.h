@@ -12,6 +12,7 @@ class Piece
         Board & parent;
         void condCheck(short addX,short addY);
         short colourCond;
+        bool checkCheck(short addX,short addY);
     public:
         short posX,posY,type,legalMovesAmmount,previousPosX=-1,previousPosY=-1,enPassantLegal=-1,castleLegal=-1;
         int lastMoveNumber=-1;
