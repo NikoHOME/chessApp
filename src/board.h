@@ -11,11 +11,12 @@ class Piece
     private:
         Board & parent;
         void condCheck(short addX,short addY);
-        short colourCond;
-        bool checkCheck(short addX,short addY);
+        bool checkChecks(short futureX,short futureY,bool isKing);
+        bool checkCheckFunc(short addX, short addY, short moveType);
     public:
         short posX,posY,type,legalMovesAmmount,previousPosX=-1,previousPosY=-1,enPassantLegal=-1,castleLegal=-1;
         int lastMoveNumber=-1;
+        short colourCond;
         bool isOnBoard;
         std::vector <std::pair<short,short>> legalMoves;
         void updateLegalMoves();
@@ -74,6 +75,8 @@ class Board{
         int turnNumber=0;
         void updateBoard(short x,short y,short value);
         void Debug();
+        bool whiteKingInCheck=false;
+        bool blackKingInCheck=false;
 
         Piece Pieces[32] = 
             {

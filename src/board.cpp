@@ -79,120 +79,202 @@ void Board ::Debug()
 }
 
 
-
-
-bool Piece :: checkCheck(short addX,short addY)
+bool Piece :: checkCheckFunc(short addX, short addY, short moveType) //0 pawn //1 knight //2 bishop & queen //3 rook & queen // 3 Digit for King 1st real moveType 2nd kingposX 3rd kingposY
 {
-
-    short   kingOffsetX,kingOffsetY,tempPiece,tempPieceType,tempX,tempY;
-    if(type%10==0)
+    short kingPosX,kingPosY,tempX,tempY;
+    if(colourCond==1)
     {
-        kingOffsetX=parent.Pieces[15].posX-posX;
-        kingOffsetY=parent.Pieces[15].posY-posY;
-    }
-    else
-    {
-        kingOffsetX=parent.Pieces[31].posX-posX;
-        kingOffsetY=parent.Pieces[31].posY-posY;
-    }
-
-    
-    if(kingOffsetX>0) addX=1;
-    else addX=-1;
-    if(kingOffsetY>0) addY=1;
-    else addY=-1;
-    
-    if(kingOffsetX==0) addX=0;
-    if(kingOffsetY==0) addY=0;
-
-
-
-
-    if( abs(kingOffsetX)==abs(kingOffsetY) || kingOffsetX==0 || kingOffsetY==0)
-    {
-        tempX=posX+addX;
-        tempY=posY+addY;
-        while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+        if(moveType>10)
         {
-            tempX+=addX;
-            tempY+=addY;
-        }   
-        if(colourCond==1)
-        {
-            addX=-addX;
-            addY=-addY;
-            std::cout<<parent.getPiece(tempX,tempY)<<"\n";
-            if(parent.getPiece(tempX,tempY)==60 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-            {
-                tempX=posX+addX;
-                tempY=posY+addY;
-                while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-                {
-                    tempX+=addX;
-                    tempY+=addY;
-                }
-                if(tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0) 
-                {
-                    tempPiece=parent.getPieceNumber(tempX,tempY);
-                    tempPieceType=parent.Pieces[tempPiece].type;
-                    if(abs(kingOffsetX)==abs(kingOffsetY) && (tempPieceType==21 || tempPieceType==51))
-                    {
-                        std::cout<<"ALERT";
-                        return true;
-                    }
-                    else if((kingOffsetX==0 || kingOffsetY==0) && (tempPieceType==51 || tempPieceType==41))
-                    {
-                        std::cout<<"ALERT";
-                        return true;
-                    }
-                }
-            }
+            kingPosY=moveType%10;
+            moveType/=10;
+            kingPosX=moveType%10;
+            moveType/=10;
         }
         else
         {
-            addX=-addX;
-            addY=-addY;
-            if(parent.getPiece(tempX,tempY)==61 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
-            {
-                tempX+=addX;
-                tempY+=addY;
+            kingPosX=parent.Pieces[15].posX;
+            kingPosY=parent.Pieces[15].posY;
+        }
+        tempX=kingPosX+addX;
+        tempY=kingPosY+addY;
+        switch(moveType)
+        {
+            case 0:
+                if(parent.getPiece(tempX,tempY)==11  && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    return true;
+                }
+                break;
+            case 1:
+                if(parent.getPiece(tempX,tempY)==21  && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    return true;
+                }
+                break;
+            case 2:
                 while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
                 {
                     tempX+=addX;
                     tempY+=addY;
-                }
-                if(tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0) 
+                }   
+                if((parent.getPiece(tempX,tempY)==31 || parent.getPiece(tempX,tempY)==51) && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
                 {
-                    tempPiece=parent.getPieceNumber(tempX,tempY);
-                }
-                if(tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0) 
+                    return true;
+                }  
+                break; 
+            case 3:
+                while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
                 {
-                    tempPiece=parent.getPieceNumber(tempX,tempY);
-                    tempPieceType=parent.Pieces[tempPiece].type;
-                    if(abs(kingOffsetX)==abs(kingOffsetY) && (tempPieceType==20 || tempPieceType==50))
-                    {
-                        std::cout<<"ALERT";
-                        return true;
-                    }
-                    else if((kingOffsetX==0 || kingOffsetY==0) && (tempPieceType==50 || tempPieceType==40))
-                    {
-                        std::cout<<"ALERT";
-                        return true;
-                    }
-                }
-            }   
-        }
-          
+                    tempX+=addX;
+                    tempY+=addY;
+                }   
+                if((parent.getPiece(tempX,tempY)==41 || parent.getPiece(tempX,tempY)==51) && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    return true;
+                }  
+                break; 
+        }  
     }
-    
-
-
-    if(type==50) 
+    else
     {
-         if( abs(kingOffsetX)==abs(kingOffsetY) || kingOffsetX==0 || kingOffsetY==0) std::cout<<kingOffsetX<<" "<<kingOffsetY<<"\n";
+        if(moveType>10)
+        {
+            kingPosY=moveType%10;
+            moveType/=10;
+            kingPosX=moveType%10;
+            moveType/=10;
+        }
+        else
+        {
+            kingPosX=parent.Pieces[31].posX;
+            kingPosY=parent.Pieces[31].posY;
+        }
+        tempX=kingPosX+addX;
+        tempY=kingPosY+addY;
+        switch(moveType)
+        {
+            case 0:
+                if(parent.getPiece(tempX,tempY)==10  && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    return true;
+                }
+                break;
+            case 1:
+                if(parent.getPiece(tempX,tempY)==20  && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    return true;
+                }
+                break;
+            case 2:
+                while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    tempX+=addX;
+                    tempY+=addY;
+                }   
+                if((parent.getPiece(tempX,tempY)==30 || parent.getPiece(tempX,tempY)==50) && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    return true;
+                }  
+                break; 
+            case 3:
+                while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    tempX+=addX;
+                    tempY+=addY;
+                }   
+                if((parent.getPiece(tempX,tempY)==40 || parent.getPiece(tempX,tempY)==50) && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+                {
+                    return true;
+                }  
+                break; 
+        }   
     }
+    return  false;
+}
+
+
+bool Piece :: checkChecks(short futureX,short futureY,bool isKing)
+{
+    short tempType=parent.getPiece(futureX,futureY),moveType=0;
+    parent.updateBoard(futureX,futureY,type);
+    parent.updateBoard(posX,posY,0);
+
+
+    if(colourCond==1)
+    {
+        moveType=0;
+        if(isKing)
+        {
+            moveType*=10;
+            moveType+=futureX;
+            moveType*=10;
+            moveType+=futureY;
+        }
+        if(checkCheckFunc(1,1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+        if(checkCheckFunc(-1,1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    }
+    else
+    {
+        moveType=0;
+        if(isKing)
+        {
+            moveType*=10;
+            moveType+=futureX;
+            moveType*=10;
+            moveType+=futureY;
+        }
+        if(checkCheckFunc(1,-1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+        if(checkCheckFunc(-1,-1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    }
+    moveType=1;
+    if(isKing)
+    {
+        moveType*=10;
+        moveType+=futureX;
+        moveType*=10;
+        moveType+=futureY;
+    }
+    if(checkCheckFunc(1,2,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(1,-2,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(-1,2,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(-1,-2,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+
+    if(checkCheckFunc(2,1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(2,-1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(-2,1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); ;return true;}
+    if(checkCheckFunc(-2,-1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    moveType=2;
+    if(isKing)
+    {
+        moveType*=10;
+        moveType+=futureX;
+        moveType*=10;
+        moveType+=futureY;
+    }
+    if(checkCheckFunc(1,1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(1,-1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(-1,1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(-1,-1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    moveType=3;
+    if(isKing)
+    {
+        moveType*=10;
+        moveType+=futureX;
+        moveType*=10;
+        moveType+=futureY;
+    }
+    if(checkCheckFunc(1,0,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(-1,0,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(0,1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+    if(checkCheckFunc(0,-1,moveType)) {parent.updateBoard(futureX,futureY,tempType); parent.updateBoard(posX,posY,type); return true;}
+
+
+    parent.updateBoard(futureX,futureY,tempType);
+    parent.updateBoard(posX,posY,type);
     return false;
 }
+
 
 
 
@@ -203,27 +285,46 @@ void Piece :: condCheck(short addX,short addY)
     short tempX=posX+addX,tempY=posY+addY;
     switch(type)
     {
-        case 20: case 21: case 60: case 61:
+        case 20: case 21:
             
             if((parent.getPiece(tempX,tempY)==0 || parent.getPiece(tempX,tempY)%10==colourCond) && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
             {
-                legalMoves[legalMovesAmmount]={tempX,tempY};
-                ++legalMovesAmmount;
+                if(!checkChecks(tempX,tempY,false))
+                {
+                    legalMoves[legalMovesAmmount]={tempX,tempY};
+                    ++legalMovesAmmount;
+                }
+            }
+            break;
+        case 60: case 61:
+            if((parent.getPiece(tempX,tempY)==0 || parent.getPiece(tempX,tempY)%10==colourCond) && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
+            {
+                if(!checkChecks(tempX,tempY,true))
+                {
+                    legalMoves[legalMovesAmmount]={tempX,tempY};
+                    ++legalMovesAmmount;
+                }
+
             }
             break;
         default:    
             while(parent.getPiece(tempX,tempY)==0 && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
             {
-                legalMoves[legalMovesAmmount]={tempX,tempY};
-                ++legalMovesAmmount;
-                if(type==50) checkCheck(addX,addY);
+                if(!checkChecks(tempX,tempY,false))
+                {
+                    legalMoves[legalMovesAmmount]={tempX,tempY};
+                    ++legalMovesAmmount;
+                }
                 tempX+=addX;
                 tempY+=addY;
             }   
             if(parent.getPiece(tempX,tempY)%10==colourCond && tempX<=7 && tempX>=0 && tempY<=7 && tempY>=0)
             {
-                legalMoves[legalMovesAmmount]={tempX,tempY};
-                ++legalMovesAmmount;
+                if(!checkChecks(tempX,tempY,false))
+                {
+                    legalMoves[legalMovesAmmount]={tempX,tempY};
+                    ++legalMovesAmmount;
+                }
             }   
             break;         
            
@@ -242,23 +343,35 @@ void Piece :: updateLegalMoves()
         case 10:
             if(parent.getPiece(posX,posY+1)==0)
             {
-                legalMoves[legalMovesAmmount]={posX,posY+1};
-                ++legalMovesAmmount;
+                if(!checkChecks(posX,posY+1,false))
+                {
+                    legalMoves[legalMovesAmmount]={posX,posY+1};
+                    ++legalMovesAmmount;
+                }
             }
             if(parent.getPiece(posX,posY+2)==0 && parent.getPiece(posX,posY+1)==0 && posY==1)
             {
-                legalMoves[legalMovesAmmount]={posX,posY+2};
-                ++legalMovesAmmount;
+                if(!checkChecks(posX,posY+2,false))
+                {
+                    legalMoves[legalMovesAmmount]={posX,posY+2};
+                    ++legalMovesAmmount;
+                }
             }
             if(posX!=7) if(parent.getPiece(posX+1,posY+1)!=0 && parent.getPiece(posX+1,posY+1)%10==colourCond)
             {
-                legalMoves[legalMovesAmmount]={posX+1,posY+1};
-                ++legalMovesAmmount;
+                if(!checkChecks(posX+1,posY+1,false))
+                {
+                    legalMoves[legalMovesAmmount]={posX+1,posY+1};
+                    ++legalMovesAmmount;
+                }
             }
             if(posX!=0) if(parent.getPiece(posX-1,posY+1)!=0 && parent.getPiece(posX-1,posY+1)%10==colourCond)
             {
-                legalMoves[legalMovesAmmount]={posX-1,posY+1};
-                ++legalMovesAmmount;
+                if(!checkChecks(posX-1,posY+1,false))
+                {
+                    legalMoves[legalMovesAmmount]={posX-1,posY+1};
+                    ++legalMovesAmmount;
+                }
             }
             //En Peasant
             if(posX!=7 && posY==4) 
@@ -268,9 +381,14 @@ void Piece :: updateLegalMoves()
                     short temp = parent.getPieceNumber(posX+1,posY);
                     if(parent.Pieces[temp].lastMoveNumber==parent.turnNumber && parent.Pieces[temp].previousPosY==6)
                     {
-                        legalMoves[legalMovesAmmount]={posX+1,posY+1};
-                        enPassantLegal=legalMovesAmmount;
-                        ++legalMovesAmmount;
+                        parent.updateBoard(posX+1,posY,0);
+                        if(!checkChecks(posX+1,posY+1,false))
+                        {
+                            legalMoves[legalMovesAmmount]={posX+1,posY+1};
+                            enPassantLegal=legalMovesAmmount;
+                            ++legalMovesAmmount;
+                        }
+                        parent.updateBoard(posX+1,posY,11);
                     }
                 }
             }
@@ -283,9 +401,15 @@ void Piece :: updateLegalMoves()
                     short temp = parent.getPieceNumber(posX-1,posY);
                     if(parent.Pieces[temp].lastMoveNumber==parent.turnNumber && parent.Pieces[temp].previousPosY==6)
                     {
-                        legalMoves[legalMovesAmmount]={posX-1,posY+1};
-                        enPassantLegal=legalMovesAmmount;
-                        ++legalMovesAmmount;
+                        parent.updateBoard(posX-1,posY,0);
+                        parent.Debug();
+                        if(!checkChecks(posX-1,posY+1,false))
+                        {
+                            legalMoves[legalMovesAmmount]={posX-1,posY+1};
+                            enPassantLegal=legalMovesAmmount;
+                            ++legalMovesAmmount;
+                        }
+                        parent.updateBoard(posX-1,posY,11);
                     }
                 }
             }
@@ -294,23 +418,35 @@ void Piece :: updateLegalMoves()
         case 11:
             if(parent.getPiece(posX,posY-1)==0)
             {
-                legalMoves[legalMovesAmmount]={posX,posY-1};
-                ++legalMovesAmmount;
+                if(!checkChecks(posX,posY-1,false))
+                {
+                    legalMoves[legalMovesAmmount]={posX,posY-1};
+                    ++legalMovesAmmount;
+                }
             }
             if(parent.getPiece(posX,posY-2)==0 &&  parent.getPiece(posX,posY-1)==0 && posY==6)
             {
-                legalMoves[legalMovesAmmount]={posX,posY-2};
-                ++legalMovesAmmount;
+                if(!checkChecks(posX,posY-2,false))
+                {
+                    legalMoves[legalMovesAmmount]={posX,posY-2};
+                    ++legalMovesAmmount;
+                }
             }
             if(posX!=0) if(parent.getPiece(posX-1,posY-1)!=0 && parent.getPiece(posX-1,posY-1)%10==colourCond)
             {
-                legalMoves[legalMovesAmmount]={posX-1,posY-1};
-                ++legalMovesAmmount;
+                if(!checkChecks(posX-1,posY-1,false))
+                {
+                    legalMoves[legalMovesAmmount]={posX-1,posY-1};
+                    ++legalMovesAmmount;
+                }
             }
             if(posX!=7) if(parent.getPiece(posX+1,posY-1)!=0 && parent.getPiece(posX+1,posY-1)%10==colourCond)
             {
-                legalMoves[legalMovesAmmount]={posX+1,posY-1};
-                ++legalMovesAmmount;
+                if(!checkChecks(posX+1,posY-1,false))
+                {
+                    legalMoves[legalMovesAmmount]={posX+1,posY-1};
+                    ++legalMovesAmmount;
+                }
             }
             //En peasant
             if(posX!=7 && posY==3) 
@@ -320,9 +456,14 @@ void Piece :: updateLegalMoves()
                     short temp = parent.getPieceNumber(posX+1,posY);
                     if(parent.Pieces[temp].lastMoveNumber==parent.turnNumber && parent.Pieces[temp].previousPosY==1)
                     {
-                        legalMoves[legalMovesAmmount]={posX+1,posY-1};
-                        enPassantLegal=legalMovesAmmount;
-                        ++legalMovesAmmount;
+                        parent.updateBoard(posX+1,posY,0);
+                        if(!checkChecks(posX+1,posY-1,false))
+                        {
+                            legalMoves[legalMovesAmmount]={posX+1,posY-1};
+                            enPassantLegal=legalMovesAmmount;
+                            ++legalMovesAmmount;
+                        }
+                        parent.updateBoard(posX+1,posY,10);
                     }
                 }
             }
@@ -333,9 +474,14 @@ void Piece :: updateLegalMoves()
                     short temp = parent.getPieceNumber(posX-1,posY);
                     if(parent.Pieces[temp].lastMoveNumber==parent.turnNumber && parent.Pieces[temp].previousPosY==1)
                     {
-                        legalMoves[legalMovesAmmount]={posX-1,posY-1};
-                        enPassantLegal=legalMovesAmmount;
-                        ++legalMovesAmmount;
+                        parent.updateBoard(posX-1,posY,0);
+                        if(!checkChecks(posX-1,posY-1,false))
+                        {
+                            legalMoves[legalMovesAmmount]={posX-1,posY-1};
+                            enPassantLegal=legalMovesAmmount;
+                            ++legalMovesAmmount;
+                        }
+                        parent.updateBoard(posX-1,posY,10);
                     }
                 }
             }
@@ -375,6 +521,14 @@ void Piece :: updateLegalMoves()
             condCheck(0,-1);
             break;  
         case 60: case 61:
+            if(type==60)
+            {
+                if(checkChecks(4,0,0)) parent.whiteKingInCheck=true;
+            }
+            else
+            {
+                if(checkChecks(4,7,0)) parent.blackKingInCheck=true;
+            }
             condCheck(1,1);
             condCheck(1,-1);
             condCheck(-1,1);
@@ -387,34 +541,80 @@ void Piece :: updateLegalMoves()
 
             if(previousPosX==-1)
             {
+                bool castleCheck=true;
                 if(type==60)
                 {
-                    if(parent.Pieces[12].previousPosX==-1 && parent.getPiece(1,0)==0 && parent.getPiece(2,0)==0 && parent.getPiece(3,0)==0)
+                    if(parent.Pieces[12].previousPosX==-1 && parent.getPiece(1,0)==0 && parent.getPiece(2,0)==0 && parent.getPiece(3,0)==0 && !parent.whiteKingInCheck)
                     {
-                        legalMoves[legalMovesAmmount]={2,0};
-                        castleLegal=legalMovesAmmount;
-                        ++legalMovesAmmount;
+
+                        parent.updateBoard(4,0,0);
+                        parent.updateBoard(3,0,60);
+                        if(checkChecks(3,0,true)) castleCheck=false;
+                        parent.updateBoard(3,0,0);
+                        parent.updateBoard(2,0,60);
+                        if(checkChecks(2,0,true)) castleCheck=false;
+                        if(castleCheck)
+                        {
+                            legalMoves[legalMovesAmmount]={2,0};
+                            castleLegal=legalMovesAmmount;
+                            ++legalMovesAmmount;
+                        }
+                        parent.updateBoard(2,0,0);
+                        parent.updateBoard(4,0,60);
                     }
-                    if(parent.Pieces[13].previousPosX==-1 && parent.getPiece(5,0)==0 && parent.getPiece(6,0)==0)
+                    if(parent.Pieces[13].previousPosX==-1 && parent.getPiece(5,0)==0 && parent.getPiece(6,0)==0 && !parent.whiteKingInCheck)
                     {
-                        legalMoves[legalMovesAmmount]={6,0};
-                        castleLegal=legalMovesAmmount;
-                        ++legalMovesAmmount;
+                        parent.updateBoard(4,0,0);
+                        parent.updateBoard(5,0,60);
+                        if(checkChecks(5,0,true)) castleCheck=false;
+                        parent.updateBoard(5,0,0);
+                        parent.updateBoard(6,0,60);
+                        if(checkChecks(6,0,true)) castleCheck=false;                        
+                        if(castleCheck)
+                        {
+                            legalMoves[legalMovesAmmount]={6,0};
+                            castleLegal=legalMovesAmmount;
+                            ++legalMovesAmmount;
+                        }
+                        parent.updateBoard(6,0,0);
+                        parent.updateBoard(4,0,60);                        
                     }
                 }
                 else
                 {
-                    if(parent.Pieces[28].previousPosX==-1 && parent.getPiece(1,7)==0 && parent.getPiece(2,7)==0 && parent.getPiece(3,7)==0)
+                    if(parent.Pieces[28].previousPosX==-1 && parent.getPiece(1,7)==0 && parent.getPiece(2,7)==0 && parent.getPiece(3,7)==0 && !parent.blackKingInCheck)
                     {
-                        legalMoves[legalMovesAmmount]={2,7};
-                        castleLegal=legalMovesAmmount;
-                        ++legalMovesAmmount;
+                        parent.updateBoard(4,7,0);
+                        parent.updateBoard(3,7,60);
+                        if(checkChecks(3,7,true)) castleCheck=false;
+                        parent.updateBoard(3,7,0);
+                        parent.updateBoard(2,7,60);
+                        if(checkChecks(2,7,true)) castleCheck=false;
+                        if(castleCheck)
+                        {
+                            legalMoves[legalMovesAmmount]={2,7};
+                            castleLegal=legalMovesAmmount;
+                            ++legalMovesAmmount;
+                        }
+                        parent.updateBoard(2,7,0);
+                        parent.updateBoard(4,7,60);
                     }
-                    if(parent.Pieces[29].previousPosX==-1 && parent.getPiece(5,7)==0 && parent.getPiece(6,7)==0)
+                    if(parent.Pieces[29].previousPosX==-1 && parent.getPiece(5,7)==0 && parent.getPiece(6,7)==0 && !parent.blackKingInCheck)
                     {
-                        legalMoves[legalMovesAmmount]={6,7};
-                        castleLegal=legalMovesAmmount;
-                        ++legalMovesAmmount;
+                        parent.updateBoard(4,7,0);
+                        parent.updateBoard(5,7,60);
+                        if(checkChecks(5,7,true)) castleCheck=false;
+                        parent.updateBoard(5,7,0);
+                        parent.updateBoard(6,7,60);
+                        if(checkChecks(6,7,true)) castleCheck=false;                        
+                        if(castleCheck)
+                        {
+                            legalMoves[legalMovesAmmount]={6,7};
+                            castleLegal=legalMovesAmmount;
+                            ++legalMovesAmmount;
+                        }
+                        parent.updateBoard(6,7,0);
+                        parent.updateBoard(4,7,60);   
                     }
                 }
             }

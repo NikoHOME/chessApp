@@ -299,7 +299,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 				// Check if the move was an en Passant
 				if(legalSelection==chessBoard.Pieces[currentSelection].enPassantLegal)
 				{
-					if(chessBoard.Pieces[currentSelection].type%10==0)	
+					if(chessBoard.Pieces[currentSelection].colourCond==1)	
 					{
 						temp = chessBoard.getPieceNumber(tempPosX,tempPosY-1); 	
 						chessBoard.updateBoard(tempPosX,tempPosY-1,0);
@@ -320,7 +320,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 				// Check if the move was a Castle
 				else if(legalSelection==chessBoard.Pieces[currentSelection].castleLegal)
 				{
-					if(chessBoard.Pieces[currentSelection].type%10==0)	
+					if(chessBoard.Pieces[currentSelection].colourCond==1)	
 					{
 						if(tempPosX==2) {temp=12;  tempPosX=3; tempPosY=0;}
 						else 			{temp=13;  tempPosX=5; tempPosY=0;}
@@ -340,6 +340,18 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 					};
 					chessBoard.Pieces[temp].movePiece(tempPosX,tempPosY);
 				}
+				//Check if the move was a promotion
+				if(chessBoard.Pieces[currentSelection].type==10 && chessBoard.Pieces[currentSelection].posY == 7)
+				{
+					chessBoard.Pieces[currentSelection].type=50;
+					chessBoard.updateBoard(chessBoard.Pieces[currentSelection].posX,chessBoard.Pieces[currentSelection].posY,50);
+				}	
+				else if(chessBoard.Pieces[currentSelection].type==11 && chessBoard.Pieces[currentSelection].posY == 0)
+				{
+					chessBoard.Pieces[currentSelection].type=51;
+					chessBoard.updateBoard(chessBoard.Pieces[currentSelection].posX,chessBoard.Pieces[currentSelection].posY,51);
+				}
+				//chessBoard.Debug();
 				// Update legal moves
 				for(int j=0;j<32;++j) 
 				{
@@ -522,7 +534,7 @@ int main()
 	glUseProgram(shaderProgram);
 	//glBindTexture(GL_TEXTURE_2D,whitePawn);
 
-
+	int whiteLegalsSum=0,blackLegalsSum=0;
 
 	while(!glfwWindowShouldClose(window))
 	{
@@ -545,8 +557,32 @@ int main()
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,0,sizeof(unsigned int)*pieceIndices.size()*6,&pieceIndices[0]);
 
 		// Draw pieces
-        glBindTexture(GL_TEXTURE_2D, whitePawn);
-		glDrawElements(GL_TRIANGLES, 8*6, GL_UNSIGNED_INT,0);
+		for(int i=0;i<8;++i)
+		{
+			switch(chessBoard.Pieces[i].type)
+			{
+				case 10:
+					glBindTexture(GL_TEXTURE_2D, whitePawn);
+					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+					break;
+				case 20:
+					glBindTexture(GL_TEXTURE_2D, whiteKnight);
+					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+					break;
+				case 30:
+					glBindTexture(GL_TEXTURE_2D, whiteBishop);
+					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+					break;
+				case 40:
+					glBindTexture(GL_TEXTURE_2D, whiteRook);
+					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+					break;
+				case 50:
+					glBindTexture(GL_TEXTURE_2D, whiteQueen);
+					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+					break;
+			}
+		}
 		glBindTexture(GL_TEXTURE_2D, whiteKnight);
 		glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(8*sizeof(indices)));
 		glBindTexture(GL_TEXTURE_2D, whiteBishop);
@@ -558,8 +594,32 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, whiteKing);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(15*sizeof(indices)));
 
-		glBindTexture(GL_TEXTURE_2D, blackPawn);
-		glDrawElements(GL_TRIANGLES, 8*6, GL_UNSIGNED_INT,(void*)(16*sizeof(indices)));
+		for(int i=16;i<24;++i)
+		{
+			switch(chessBoard.Pieces[i].type)
+			{
+				case 11:
+					glBindTexture(GL_TEXTURE_2D, blackPawn);
+					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+					break;
+				case 21:
+					glBindTexture(GL_TEXTURE_2D, blackKnight);
+					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+					break;
+				case 31:
+					glBindTexture(GL_TEXTURE_2D, blackBishop);
+					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+					break;
+				case 41:
+					glBindTexture(GL_TEXTURE_2D, blackRook);
+					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+					break;
+				case 51:
+					glBindTexture(GL_TEXTURE_2D, blackQueen);
+					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+					break;
+			}
+		}
 		glBindTexture(GL_TEXTURE_2D, blackKnight);
 		glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(24*sizeof(indices)));
 		glBindTexture(GL_TEXTURE_2D, blackBishop);
@@ -583,7 +643,7 @@ int main()
 		//glBindTexture(GL_TEXTURE_2D, 1.0f);
 		glBindTexture(GL_TEXTURE_2D, legalDot);
 		glDrawElements(GL_TRIANGLES, legalsIndices.size()*6, GL_UNSIGNED_INT,0);
-		//glBindTexture(GL_TEXTURE_2D,0);
+		glBindTexture(GL_TEXTURE_2D,0);
 
 		// Get cursor possition and check if is on the board
 		glfwGetCursorPos(window, &windowPosX, &windowPosY);
@@ -594,7 +654,34 @@ int main()
 
 		if(baseX1<=windowPosX && -baseX1>=windowPosX && baseY1<=windowPosY && -baseY1>=windowPosY) onBoard=true;
 
-		
+		if(chessBoard.whiteKingInCheck)
+		{
+			whiteLegalsSum=0;
+			for(int i=0;i<16;++i)
+			{
+				whiteLegalsSum+=chessBoard.Pieces[i].legalMovesAmmount;
+			}
+			if(whiteLegalsSum==0) 
+			{
+				std::cout<<"CHECKMATE - Black Won\n";
+				break;
+			}
+		}
+		else if(chessBoard.blackKingInCheck)
+		{
+			blackLegalsSum=0;
+			for(int i=16;i<32;++i)
+			{
+				blackLegalsSum+=chessBoard.Pieces[i].legalMovesAmmount;
+			}
+			if(blackLegalsSum==0) 
+			{
+				std::cout<<"CHECKMATE - White Won\n";
+				break;
+			}			
+		}
+
+
 		glfwSetMouseButtonCallback(window, mouse_button_callback);
 		
 		// Swap buffers
