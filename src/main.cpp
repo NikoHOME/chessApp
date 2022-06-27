@@ -127,11 +127,9 @@ void addTexture(GLuint* texture,std::string input)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     int width, height, nrChannels;
-    GLenum format;
 	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 3);
-	if(nrChannels==3) format= GL_RGB;
-	else format= GL_RGBA;
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
@@ -363,7 +361,6 @@ int main()
 {	
 	
 	glfwInit();
-	glutInitDisplayMode( GL_DEPTH | GL_DOUBLE | GL_RGBA);
 	// Tell glfw what versions we are using
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -375,6 +372,10 @@ int main()
 
 	// load glad
 	gladLoadGL();
+	// Enable Blend
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendEquation(GL_FUNC_ADD);
 
 	// Tell it the render dimensions
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -513,9 +514,7 @@ int main()
 
 	int whiteLegalsSum=0,blackLegalsSum=0;
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBlendEquation(GL_FUNC_ADD);
+
 
 	while(!glfwWindowShouldClose(window))
 	{
