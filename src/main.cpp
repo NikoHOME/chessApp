@@ -4,21 +4,8 @@
 #include <GLFW/glfw3.h>
 #include "stb_image.h"
 
-
 #include <iostream>
-
 #include "board.h"
-
-#include<chrono>
-
-
-namespace sc=std::chrono;
-
-
-
-
-
-
 
 Board chessBoard;
 
@@ -44,7 +31,6 @@ struct indices{
 	unsigned int i1,i2,i3,i4,i5,i6;
 };
 
-
 //Global variables
 int 	resolutionX=1000,resolutionY=800;
 float 	resulutionRatio = (float)resolutionY/(float)resolutionX;
@@ -63,9 +49,7 @@ vec2	cord1 = {0.0f,0.0f},
 		cord4 = {1.0f,0.0f};
 
 vec3 pieceColour,
-whitePieceColour={1.0f,1.0f,1.0f},
-boardColour={1.0f,1.0f,1.0f};
-
+baseWhite={1.0f,1.0f,1.0f};
 
 
 
@@ -77,9 +61,9 @@ const char *vertexShaderSource ="#version 330 core\n"
 	"out vec2 outTextureCord;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(pos.x,pos.y,pos.z,1.0f);\n"
+    "   gl_Position = vec4(pos,1.0f);\n"
     "   outColor = color;\n"
-	"   outTextureCord = vec2(textureCord.x,textureCord.y);\n"
+	"   outTextureCord = vec2(textureCord);\n"
     "}\0";
 
 const char *fragmentShaderSource = "#version 330 core\n"
@@ -93,7 +77,6 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "   fragColor = texture(outTexture, outTextureCord);\n"
 //    "   fragColor = vec4(outColor, 1.0);\n"
     "}\n\0";
-
 
 
 //Create object draw information
@@ -139,14 +122,16 @@ void addTexture(GLuint* texture,std::string input)
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture); 
 	stbi_set_flip_vertically_on_load(true); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     int width, height, nrChannels;
-    
+    GLenum format;
 	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 3);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	if(nrChannels==3) format= GL_RGB;
+	else format= GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
@@ -234,7 +219,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     				posY=chessBoard.Pieces[currentSelection].legalMoves[i].second*incrementY;
 					legalsVertices.push_back
 					({
-						square(posX,posY,boardColour)	
+						square(posX,posY,baseWhite)	
 					});
 				}	
 				for(unsigned int i=0;i<legalsVertices.size()*4;i+=4)
@@ -285,11 +270,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 				// Move to the selected square
 				posX=tempPosX*incrementX;
     			posY=tempPosY*incrementY;
-				pieceColour=whitePieceColour;
+
 				chessBoard.Pieces[currentSelection].movePiece(tempPosX,tempPosY);
 				pieceVertices[currentSelection] =
 				{
-					paddingSquare(posX,posY,paddingX,paddingY,pieceColour)
+					paddingSquare(posX,posY,paddingX,paddingY,baseWhite)
 				};
 
 				//Reset legal overlay and come back to selecting mode
@@ -332,11 +317,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 					} 												
 					posX=tempPosX*incrementX;
     				posY=tempPosY*incrementY;
-					pieceColour=whitePieceColour;
+
 
 					pieceVertices[temp] =
 					{
-						paddingSquare(posX,posY,paddingX,paddingY,pieceColour)
+						paddingSquare(posX,posY,paddingX,paddingY,baseWhite)
 					};
 					chessBoard.Pieces[temp].movePiece(tempPosX,tempPosY);
 				}
@@ -378,14 +363,10 @@ int main()
 {	
 	
 	glfwInit();
-
+	glutInitDisplayMode( GL_DEPTH | GL_DOUBLE | GL_RGBA);
 	// Tell glfw what versions we are using
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-
-
-
-
 	
 	// Create window and select it
 	GLFWwindow* window = glfwCreateWindow(resolutionX,resolutionY,"chess",NULL,NULL);
@@ -421,15 +402,11 @@ int main()
 	
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
-
 	// White Pieces
 	//	0-7 Pawns  8-9 Knights 10-11 Bishops 12-13 Rooks 14 Queen 15 King
 	// Black Pieces
 	//	16-23 Pawns  24-25 Knights 26-27 Bishops 28-29 Rooks 30 Queen 31 King
-
-	chessBoard.Debug();
-
-
+	//chessBoard.Debug();
 	// Update pieces legal moves
 	for(int j=0;j<32;++j) 
 	{
@@ -438,25 +415,21 @@ int main()
 			chessBoard.Pieces[j].updateLegalMoves();
 		}
 	}
-
-
-
-
-	//1.0f, 1.0f, // top right
-	//1.0f, 0.0f, // bottom right
-	// 0.0f, 0.0f, // bottom left
-	//  0.0f, 1.0f  // top left 
-
 	// Create baord
 	nodes boardVertices[] = 
 	{
-		baseX1, baseY1, 0.0f, boardColour, cord1,
-        baseX1, -baseY1, 0.0f, boardColour, cord2,
-        -baseX1,-baseY1, 0.0f, boardColour, cord3,
-        -baseX1, baseY1, 0.0f, boardColour, cord4	
+		baseX1, baseY1, 0.0f, baseWhite, cord1,
+        baseX1, -baseY1, 0.0f, baseWhite, cord2,
+        -baseX1,-baseY1, 0.0f, baseWhite, cord3,
+        -baseX1, baseY1, 0.0f, baseWhite, cord4	
+	};
+	indices boardIndices[] = 
+	{
+		0,1,3,
+		1,3,2	
 	};
 	// Declare GL objects
-	GLuint piecesAB,piecesEAB,piecesVA,boardAB,boardVA,legalsAB,legalsEAB,legalsVA;
+	GLuint piecesAB,piecesEAB,piecesVA,boardAB,boardVA,boardEAB,legalsAB,legalsEAB,legalsVA;
 
 	GLuint whitePawn,blackPawn,
 	whiteBishop,blackBishop,
@@ -464,7 +437,7 @@ int main()
 	whiteKing,blackKing,
 	whiteQueen,blackQueen,
 	whiteRook,blackRook,
-	legalDot;
+	legalDot,blank;
 
 	// Create all textures
 	addTexture(&whitePawn,"/home/linus/vscode/git/chessApp/img/pawnW.png");
@@ -480,22 +453,26 @@ int main()
 	addTexture(&whiteRook,"/home/linus/vscode/git/chessApp/img/rookW.png");
 	addTexture(&blackRook,"/home/linus/vscode/git/chessApp/img/rookB.png");
 	addTexture(&legalDot,"/home/linus/vscode/git/chessApp/img/dot.png");
+	addTexture(&blank,"/home/linus/vscode/git/chessApp/img/blank.png");
 	
 	// Generate board draw data
 
 	glGenVertexArrays(1,&boardVA);
 	glGenBuffers(1,&boardAB);
+	glGenBuffers(1,&boardEAB);
 
 	glBindVertexArray(boardVA);
 	glBindBuffer(GL_ARRAY_BUFFER,boardAB);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,boardEAB);
 
 	glBufferData(GL_ARRAY_BUFFER,32*sizeof(GLfloat),boardVertices,GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8* sizeof(GLfloat), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8* sizeof(GLfloat), (void*)(3* sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
-
-
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6*sizeof(unsigned int), boardIndices, GL_STATIC_DRAW);
 
 	// Generate dynamic draw data
 	generateBufferData(&piecesAB,&piecesEAB,&piecesVA,64);
@@ -512,11 +489,11 @@ int main()
 	{
 		posX=chessBoard.Pieces[i].posX*incrementX;
         posY=chessBoard.Pieces[i].posY*incrementY;
-		pieceColour=whitePieceColour;
+
 
 		pieceVertices.push_back
 		({
-			paddingSquare(posX,posY,paddingX,paddingY,pieceColour)
+			paddingSquare(posX,posY,paddingX,paddingY,baseWhite)
 		});
     }
 
@@ -536,6 +513,10 @@ int main()
 
 	int whiteLegalsSum=0,blackLegalsSum=0;
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
+
 	while(!glfwWindowShouldClose(window))
 	{
 		// Set basic colour
@@ -544,9 +525,9 @@ int main()
 
 		//Draw board
 		glBindVertexArray(boardVA);
-		//glBindTexture(GL_TEXTURE_2D, 1.0f);
-		glDrawArrays(GL_LINE_LOOP, 0, 4);
-		//glBindTexture(GL_TEXTURE_2D, 0);	
+		glBindTexture(GL_TEXTURE_2D, blank);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+
 
 		
 		// Update pieces data
