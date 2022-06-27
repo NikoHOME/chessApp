@@ -48,8 +48,7 @@ vec2	cord1 = {0.0f,0.0f},
 		cord3 = {1.0f,1.0f},
 		cord4 = {1.0f,0.0f};
 
-vec3 pieceColour,
-baseWhite={1.0f,1.0f,1.0f};
+vec3 baseWhite={1.0f,1.0f,1.0f};
 
 
 
@@ -74,7 +73,7 @@ const char *fragmentShaderSource = "#version 330 core\n"
 	"uniform sampler2D outTexture;\n"
     "void main()\n"
     "{\n"
-    "   fragColor = texture(outTexture, outTextureCord);\n"
+    "   fragColor = texture(outTexture, outTextureCord)*vec4(outColor, 1.0) ;\n"
 //    "   fragColor = vec4(outColor, 1.0);\n"
     "}\n\0";
 
@@ -127,9 +126,9 @@ void addTexture(GLuint* texture,std::string input)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     int width, height, nrChannels;
-	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 3);
+	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 4);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
@@ -373,9 +372,9 @@ int main()
 	// load glad
 	gladLoadGL();
 	// Enable Blend
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glBlendEquation(GL_FUNC_ADD);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendEquation(GL_FUNC_ADD);
 
 	// Tell it the render dimensions
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -417,12 +416,13 @@ int main()
 		}
 	}
 	// Create baord
+	vec3 boardColour = {0.9f,0.9f,0.9f};
 	nodes boardVertices[] = 
 	{
-		baseX1, baseY1, 0.0f, baseWhite, cord1,
-        baseX1, -baseY1, 0.0f, baseWhite, cord2,
-        -baseX1,-baseY1, 0.0f, baseWhite, cord3,
-        -baseX1, baseY1, 0.0f, baseWhite, cord4	
+		baseX1, baseY1, 0.0f, boardColour, cord1,
+        baseX1, -baseY1, 0.0f, boardColour, cord2,
+        -baseX1,-baseY1, 0.0f, boardColour, cord3,
+        -baseX1, baseY1, 0.0f, boardColour, cord4	
 	};
 	indices boardIndices[] = 
 	{
@@ -438,7 +438,7 @@ int main()
 	whiteKing,blackKing,
 	whiteQueen,blackQueen,
 	whiteRook,blackRook,
-	legalDot,blank;
+	legalDot,blank,boardImage;
 
 	// Create all textures
 	addTexture(&whitePawn,"/home/linus/vscode/git/chessApp/img/pawnW.png");
@@ -455,6 +455,7 @@ int main()
 	addTexture(&blackRook,"/home/linus/vscode/git/chessApp/img/rookB.png");
 	addTexture(&legalDot,"/home/linus/vscode/git/chessApp/img/dot.png");
 	addTexture(&blank,"/home/linus/vscode/git/chessApp/img/blank.png");
+	addTexture(&boardImage,"/home/linus/vscode/git/chessApp/img/chessBoard.png");
 	
 	// Generate board draw data
 
@@ -515,7 +516,6 @@ int main()
 	int whiteLegalsSum=0,blackLegalsSum=0;
 
 
-
 	while(!glfwWindowShouldClose(window))
 	{
 		// Set basic colour
@@ -524,7 +524,7 @@ int main()
 
 		//Draw board
 		glBindVertexArray(boardVA);
-		glBindTexture(GL_TEXTURE_2D, blank);
+		glBindTexture(GL_TEXTURE_2D, boardImage);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
 
 
