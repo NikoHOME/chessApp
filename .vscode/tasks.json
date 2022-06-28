@@ -38,10 +38,6 @@
                     "-lopengl32",
                     "-static",
                     "-lglfw3dll",
-                    //"-o",
-                    //"${workspaceFolder}/output/chess.exe",
-                    "-o",
-                    "${workspaceFolder}/output/chess.out",
                     "-o",
                     "${workspaceFolder}/output/chess.exe"
                 ]

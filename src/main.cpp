@@ -116,8 +116,12 @@ nodes paddingSquare(GLfloat X,GLfloat Y,GLfloat pX,GLfloat pY, vec3 colour)
 // Generate texture
 void addTexture(GLuint* texture,std::string input)
 {
+	std::string basePath = __FILE__;
+	basePath = basePath.substr(0, basePath.length() - 12);
+	basePath += input;
 	char* path;
-	path = &input[0];
+	path = &basePath[0];
+	std::cout<<path<<"\n";
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture); 
 	stbi_set_flip_vertically_on_load(true); 
@@ -441,21 +445,21 @@ int main()
 	legalDot,blank,boardImage;
 
 	// Create all textures
-	addTexture(&whitePawn,"/home/linus/vscode/git/chessApp/img/pawnW.png");
-	addTexture(&blackPawn,"/home/linus/vscode/git/chessApp/img/pawnB.png");
-	addTexture(&whiteKnight,"/home/linus/vscode/git/chessApp/img/knightW.png");
-	addTexture(&blackKnight,"/home/linus/vscode/git/chessApp/img/knightB.png");
-	addTexture(&whiteBishop,"/home/linus/vscode/git/chessApp/img/bishopW.png");
-	addTexture(&blackBishop,"/home/linus/vscode/git/chessApp/img/bishopB.png");
-	addTexture(&whiteKing,"/home/linus/vscode/git/chessApp/img/kingW.png");
-	addTexture(&blackKing,"/home/linus/vscode/git/chessApp/img/kingB.png");
-	addTexture(&whiteQueen,"/home/linus/vscode/git/chessApp/img/queenW.png");
-	addTexture(&blackQueen,"/home/linus/vscode/git/chessApp/img/queenB.png");
-	addTexture(&whiteRook,"/home/linus/vscode/git/chessApp/img/rookW.png");
-	addTexture(&blackRook,"/home/linus/vscode/git/chessApp/img/rookB.png");
-	addTexture(&legalDot,"/home/linus/vscode/git/chessApp/img/dot.png");
-	addTexture(&blank,"/home/linus/vscode/git/chessApp/img/blank.png");
-	addTexture(&boardImage,"/home/linus/vscode/git/chessApp/img/chessBoard.png");
+	addTexture(&whitePawn,"img/pawnW.png");
+	addTexture(&blackPawn,"img/pawnB.png");
+	addTexture(&whiteKnight,"img/knightW.png");
+	addTexture(&blackKnight,"img/knightB.png");
+	addTexture(&whiteBishop,"img/bishopW.png");
+	addTexture(&blackBishop,"img/bishopB.png");
+	addTexture(&whiteKing,"img/kingW.png");
+	addTexture(&blackKing,"img/kingB.png");
+	addTexture(&whiteQueen,"img/queenW.png");
+	addTexture(&blackQueen,"img/queenB.png");
+	addTexture(&whiteRook,"img/rookW.png");
+	addTexture(&blackRook,"img/rookB.png");
+	addTexture(&legalDot,"img/dot.png");
+	addTexture(&blank,"img/blank.png");
+	addTexture(&boardImage,"img/chessBoard.png");
 	
 	// Generate board draw data
 
