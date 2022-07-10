@@ -32,15 +32,17 @@ struct indices{
 };
 
 //Global variables
-int 	resolutionX=1000,resolutionY=800;
+int 	resolutionX=1200,resolutionY=900;
 float 	resulutionRatio = (float)resolutionY/(float)resolutionX;
 float 	incrementY = 0.225f;
 float 	incrementX = incrementY*resulutionRatio;
 float 	paddingY = 0.025;
 float 	paddingX = paddingY*resulutionRatio;
 
-GLfloat baseX1=-0.9f*resulutionRatio,
+GLfloat baseX1=-0.9f,
 		baseX2=baseX1+incrementX,
+		baseX3=baseX1+incrementX*8,
+		baseX4=baseX3+incrementX/2,
 		baseY1=-0.9f,
 		baseY2=baseY1+incrementY;
 vec2	cord1 = {0.0f,0.0f},
@@ -116,11 +118,12 @@ nodes paddingSquare(GLfloat X,GLfloat Y,GLfloat pX,GLfloat pY, vec3 colour)
 // Generate texture
 void addTexture(GLuint* texture,std::string input)
 {
-	std::string basePath = __FILE__;
-	basePath = basePath.substr(0, basePath.length() - 12);
-	basePath += input;
+	//std::string basePath = __FILE__;
+	//basePath = basePath.substr(0, basePath.length() - 12);
+	//basePath += input;
+	//basePath=input;
 	char* path;
-	path = &basePath[0];
+	path = &input[0];
 	std::cout<<path<<"\n";
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture); 
@@ -158,6 +161,26 @@ void generateBufferData(GLuint* inputAB,GLuint* inputEAB,GLuint* inputVA,unsigne
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize*6*sizeof(unsigned int), nullptr, GL_DYNAMIC_DRAW);
 }
 
+void generateStaticBufferData(GLuint* inputAB,GLuint* inputEAB,GLuint* inputVA,nodes* inputVertices,indices* inputIndices,unsigned int bufferSize)
+{
+	glGenBuffers(1,inputAB);
+	glGenBuffers(1,inputEAB);
+	glGenVertexArrays(1,inputVA);
+
+	glBindVertexArray(*inputVA);
+	glBindBuffer(GL_ARRAY_BUFFER,*inputAB);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,*inputEAB);
+
+	glBufferData(GL_ARRAY_BUFFER,bufferSize*32*sizeof(GLfloat),inputVertices,GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize*6*sizeof(unsigned int), inputIndices, GL_STATIC_DRAW);
+}
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
@@ -170,7 +193,7 @@ std::vector <indices> pieceIndices,legalsIndices;
 
 // Declare runtime variables
 double windowPosX,windowPosY;
-bool onBoard,onLegal,isSelecting=false,isWhiteTurn=true;
+bool onBoard,onLegal,isSelecting=false,isWhiteTurn=true,boardChanged=true;
 short currentSelection=-1,legalSelection=-1,previousSelection=-1,tempmin,tempmax;
 short tickspersecond = 1000/5;
 
@@ -214,6 +237,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 				legalsVertices.clear();
 				legalsIndices.clear();
 				isSelecting=true;
+				boardChanged=true;
 				for(int i=0;i<chessBoard.Pieces[currentSelection].legalMovesAmmount;++i)
 				{
 					posX=chessBoard.Pieces[currentSelection].legalMoves[i].first*incrementX;
@@ -253,6 +277,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 			if(legalSelection!=-1)
 			{
 				isWhiteTurn=!isWhiteTurn;
+				boardChanged=true;
 				// Check if we are taking a piece
 				int tempPosX=chessBoard.Pieces[currentSelection].legalMoves[legalSelection].first,
 					tempPosY=chessBoard.Pieces[currentSelection].legalMoves[legalSelection].second;
@@ -351,6 +376,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 			else
 			{
 				isSelecting=false;
+				boardChanged=true;
 				legalsVertices.clear();
 				legalsIndices.clear();
 			}
@@ -395,6 +421,8 @@ int main()
 
 	// Texture alligment fix
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	// Turn Vsync on (for performance)
+	glfwSwapInterval(1);
 
 	// Create shader program
 	GLuint shaderProgram = glCreateProgram();
@@ -425,16 +453,30 @@ int main()
 	{
 		baseX1, baseY1, 0.0f, boardColour, cord1,
         baseX1, -baseY1, 0.0f, boardColour, cord2,
-        -baseX1,-baseY1, 0.0f, boardColour, cord3,
-        -baseX1, baseY1, 0.0f, boardColour, cord4	
+        baseX3,-baseY1, 0.0f, boardColour, cord3,
+        baseX3, baseY1, 0.0f, boardColour, cord4	
 	};
 	indices boardIndices[] = 
 	{
 		0,1,3,
 		1,3,2	
 	};
+	// Create Button Tray
+	vec3 trayColour = {0.4f,0.4f,0.4f};
+	nodes trayVertices[] = 
+	{
+		baseX4, baseY1, 0.0f, trayColour, cord1,
+        baseX4, -baseY1, 0.0f, trayColour, cord2,
+        -baseX1,-baseY1, 0.0f, trayColour, cord3,
+        -baseX1, baseY1, 0.0f, trayColour, cord4	
+	};
+	indices trayIndices[] = 
+	{
+		0,1,3,
+		1,3,2	
+	};
 	// Declare GL objects
-	GLuint piecesAB,piecesEAB,piecesVA,boardAB,boardVA,boardEAB,legalsAB,legalsEAB,legalsVA;
+	GLuint piecesAB,piecesEAB,piecesVA,boardAB,boardVA,boardEAB,legalsAB,legalsEAB,legalsVA,trayAB,trayEAB,trayVA;
 
 	GLuint whitePawn,blackPawn,
 	whiteBishop,blackBishop,
@@ -445,42 +487,25 @@ int main()
 	legalDot,blank,boardImage;
 
 	// Create all textures
-	addTexture(&whitePawn,"img/pawnW.png");
-	addTexture(&blackPawn,"img/pawnB.png");
-	addTexture(&whiteKnight,"img/knightW.png");
-	addTexture(&blackKnight,"img/knightB.png");
-	addTexture(&whiteBishop,"img/bishopW.png");
-	addTexture(&blackBishop,"img/bishopB.png");
-	addTexture(&whiteKing,"img/kingW.png");
-	addTexture(&blackKing,"img/kingB.png");
-	addTexture(&whiteQueen,"img/queenW.png");
-	addTexture(&blackQueen,"img/queenB.png");
-	addTexture(&whiteRook,"img/rookW.png");
-	addTexture(&blackRook,"img/rookB.png");
-	addTexture(&legalDot,"img/dot.png");
-	addTexture(&blank,"img/blank.png");
-	addTexture(&boardImage,"img/chessBoard.png");
+	addTexture(&whitePawn,"../img/pawnW.png");
+	addTexture(&blackPawn,"../img/pawnB.png");
+	addTexture(&whiteKnight,"../img/knightW.png");
+	addTexture(&blackKnight,"../img/knightB.png");
+	addTexture(&whiteBishop,"../img/bishopW.png");
+	addTexture(&blackBishop,"../img/bishopB.png");
+	addTexture(&whiteKing,"../img/kingW.png");
+	addTexture(&blackKing,"../img/kingB.png");
+	addTexture(&whiteQueen,"../img/queenW.png");
+	addTexture(&blackQueen,"../img/queenB.png");
+	addTexture(&whiteRook,"../img/rookW.png");
+	addTexture(&blackRook,"../img/rookB.png");
+	addTexture(&legalDot,"../img/dot.png");
+	addTexture(&blank,"../img/blank.png");
+	addTexture(&boardImage,"../img/chessBoard.png");
 	
-	// Generate board draw data
-
-	glGenVertexArrays(1,&boardVA);
-	glGenBuffers(1,&boardAB);
-	glGenBuffers(1,&boardEAB);
-
-	glBindVertexArray(boardVA);
-	glBindBuffer(GL_ARRAY_BUFFER,boardAB);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,boardEAB);
-
-	glBufferData(GL_ARRAY_BUFFER,32*sizeof(GLfloat),boardVertices,GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8* sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8* sizeof(GLfloat), (void*)(3* sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6*sizeof(unsigned int), boardIndices, GL_STATIC_DRAW);
-
-	// Generate dynamic draw data
+	// Generate draw data
+	generateStaticBufferData(&boardAB,&boardEAB,&boardVA,boardVertices,boardIndices,1);
+	generateStaticBufferData(&trayAB,&trayEAB,&trayVA,trayVertices,trayIndices,1);
 	generateBufferData(&piecesAB,&piecesEAB,&piecesVA,64);
 	generateBufferData(&legalsAB,&legalsEAB,&legalsVA,32);
 
@@ -519,6 +544,7 @@ int main()
 
 	int whiteLegalsSum=0,blackLegalsSum=0;
 
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 	while(!glfwWindowShouldClose(window))
 	{
@@ -527,107 +553,119 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		//Draw board
-		glBindVertexArray(boardVA);
-		glBindTexture(GL_TEXTURE_2D, boardImage);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
-
-
-		
-		// Update pieces data
-		glBindVertexArray(piecesVA);
-		glBindBuffer(GL_ARRAY_BUFFER,piecesAB);
-		glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(GLfloat)*pieceVertices.size()*32,&pieceVertices[0]);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,piecesEAB);	
-		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,0,sizeof(unsigned int)*pieceIndices.size()*6,&pieceIndices[0]);
-
-		// Draw pieces
-		for(int i=0;i<8;++i)
+		if(boardChanged)
 		{
-			switch(chessBoard.Pieces[i].type)
+			//chessBoard.Debug();
+			glBindVertexArray(boardVA);
+			glBindTexture(GL_TEXTURE_2D, boardImage);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+
+			glBindVertexArray(trayVA);
+			glBindTexture(GL_TEXTURE_2D,blank);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+
+
+
+			// Update pieces data
+			glBindVertexArray(piecesVA);
+			glBindBuffer(GL_ARRAY_BUFFER,piecesAB);
+			glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(GLfloat)*pieceVertices.size()*32,&pieceVertices[0]);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,piecesEAB);	
+			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,0,sizeof(unsigned int)*pieceIndices.size()*6,&pieceIndices[0]);
+
+			// Draw pieces
+			for(int i=0;i<8;++i)
 			{
-				case 10:
-					glBindTexture(GL_TEXTURE_2D, whitePawn);
-					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
-					break;
-				case 20:
-					glBindTexture(GL_TEXTURE_2D, whiteKnight);
-					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
-					break;
-				case 30:
-					glBindTexture(GL_TEXTURE_2D, whiteBishop);
-					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
-					break;
-				case 40:
-					glBindTexture(GL_TEXTURE_2D, whiteRook);
-					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
-					break;
-				case 50:
-					glBindTexture(GL_TEXTURE_2D, whiteQueen);
-					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
-					break;
+				switch(chessBoard.Pieces[i].type)
+				{
+					case 10:
+						glBindTexture(GL_TEXTURE_2D, whitePawn);
+						glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+						break;
+					case 20:
+						glBindTexture(GL_TEXTURE_2D, whiteKnight);
+						glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+						break;
+					case 30:
+						glBindTexture(GL_TEXTURE_2D, whiteBishop);
+						glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+						break;
+					case 40:
+						glBindTexture(GL_TEXTURE_2D, whiteRook);
+						glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+						break;
+					case 50:
+						glBindTexture(GL_TEXTURE_2D, whiteQueen);
+						glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+						break;
+				}
 			}
-		}
-		glBindTexture(GL_TEXTURE_2D, whiteKnight);
-		glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(8*sizeof(indices)));
-		glBindTexture(GL_TEXTURE_2D, whiteBishop);
-		glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(10*sizeof(indices)));
-		glBindTexture(GL_TEXTURE_2D, whiteRook);
-		glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(12*sizeof(indices)));
-		glBindTexture(GL_TEXTURE_2D, whiteQueen);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(14*sizeof(indices)));
-		glBindTexture(GL_TEXTURE_2D, whiteKing);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(15*sizeof(indices)));
+			glBindTexture(GL_TEXTURE_2D, whiteKnight);
+			glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(8*sizeof(indices)));
+			glBindTexture(GL_TEXTURE_2D, whiteBishop);
+			glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(10*sizeof(indices)));
+			glBindTexture(GL_TEXTURE_2D, whiteRook);
+			glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(12*sizeof(indices)));
+			glBindTexture(GL_TEXTURE_2D, whiteQueen);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(14*sizeof(indices)));
+			glBindTexture(GL_TEXTURE_2D, whiteKing);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(15*sizeof(indices)));
 
-		for(int i=16;i<24;++i)
-		{
-			switch(chessBoard.Pieces[i].type)
+			for(int i=16;i<24;++i)
 			{
-				case 11:
-					glBindTexture(GL_TEXTURE_2D, blackPawn);
-					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
-					break;
-				case 21:
-					glBindTexture(GL_TEXTURE_2D, blackKnight);
-					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
-					break;
-				case 31:
-					glBindTexture(GL_TEXTURE_2D, blackBishop);
-					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
-					break;
-				case 41:
-					glBindTexture(GL_TEXTURE_2D, blackRook);
-					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
-					break;
-				case 51:
-					glBindTexture(GL_TEXTURE_2D, blackQueen);
-					glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
-					break;
+				switch(chessBoard.Pieces[i].type)
+				{
+					case 11:
+						glBindTexture(GL_TEXTURE_2D, blackPawn);
+						glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+						break;
+					case 21:
+						glBindTexture(GL_TEXTURE_2D, blackKnight);
+						glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+						break;
+					case 31:
+						glBindTexture(GL_TEXTURE_2D, blackBishop);
+						glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+						break;
+					case 41:
+						glBindTexture(GL_TEXTURE_2D, blackRook);
+						glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+						break;
+					case 51:
+						glBindTexture(GL_TEXTURE_2D, blackQueen);
+						glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(i*sizeof(indices)));
+						break;
+				}
 			}
+			glBindTexture(GL_TEXTURE_2D, blackKnight);
+			glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(24*sizeof(indices)));
+			glBindTexture(GL_TEXTURE_2D, blackBishop);
+			glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(26*sizeof(indices)));
+			glBindTexture(GL_TEXTURE_2D, blackRook);
+			glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(28*sizeof(indices)));
+			glBindTexture(GL_TEXTURE_2D, blackQueen);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(30*sizeof(indices)));
+			glBindTexture(GL_TEXTURE_2D, blackKing);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(31*sizeof(indices)));
+			//glBindTexture(GL_TEXTURE_2D,0);
+
+			// Update legal moves overlay data
+			glBindVertexArray(legalsVA);
+			glBindBuffer(GL_ARRAY_BUFFER,legalsAB);
+			glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(GLfloat)*legalsVertices.size()*32,&legalsVertices[0]);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,legalsEAB);	
+			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,0,sizeof(unsigned int)*legalsIndices.size()*6,&legalsIndices[0]);
+
+			// Draw legal moves
+			//glBindTexture(GL_TEXTURE_2D, 1.0f);
+			glBindTexture(GL_TEXTURE_2D, legalDot);
+			glDrawElements(GL_TRIANGLES, legalsIndices.size()*6, GL_UNSIGNED_INT,0);
+			glBindTexture(GL_TEXTURE_2D,0);
+
+			// Swap buffers
+			glfwSwapBuffers(window);
+			boardChanged=false;
 		}
-		glBindTexture(GL_TEXTURE_2D, blackKnight);
-		glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(24*sizeof(indices)));
-		glBindTexture(GL_TEXTURE_2D, blackBishop);
-		glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(26*sizeof(indices)));
-		glBindTexture(GL_TEXTURE_2D, blackRook);
-		glDrawElements(GL_TRIANGLES, 2*6, GL_UNSIGNED_INT,(void*)(28*sizeof(indices)));
-		glBindTexture(GL_TEXTURE_2D, blackQueen);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(30*sizeof(indices)));
-		glBindTexture(GL_TEXTURE_2D, blackKing);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(31*sizeof(indices)));
-		//glBindTexture(GL_TEXTURE_2D,0);
-
-		// Update legal moves overlay data
-		glBindVertexArray(legalsVA);
-		glBindBuffer(GL_ARRAY_BUFFER,legalsAB);
-		glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(GLfloat)*legalsVertices.size()*32,&legalsVertices[0]);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,legalsEAB);	
-		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,0,sizeof(unsigned int)*legalsIndices.size()*6,&legalsIndices[0]);
-
-		// Draw legal moves
-		//glBindTexture(GL_TEXTURE_2D, 1.0f);
-		glBindTexture(GL_TEXTURE_2D, legalDot);
-		glDrawElements(GL_TRIANGLES, legalsIndices.size()*6, GL_UNSIGNED_INT,0);
-		glBindTexture(GL_TEXTURE_2D,0);
 
 		// Get cursor possition and check if is on the board
 		glfwGetCursorPos(window, &windowPosX, &windowPosY);
@@ -664,14 +702,8 @@ int main()
 				break;
 			}			
 		}
-
-
-		glfwSetMouseButtonCallback(window, mouse_button_callback);
-		
-		// Swap buffers
-		glfwSwapBuffers(window);
+		//Call events
 		glfwPollEvents();
-	
 	}
 	
 

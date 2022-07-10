@@ -402,7 +402,6 @@ void Piece :: updateLegalMoves()
                     if(parent.Pieces[temp].lastMoveNumber==parent.turnNumber && parent.Pieces[temp].previousPosY==6)
                     {
                         parent.updateBoard(posX-1,posY,0);
-                        parent.Debug();
                         if(!checkChecks(posX-1,posY+1,false))
                         {
                             legalMoves[legalMovesAmmount]={posX-1,posY+1};
@@ -585,10 +584,10 @@ void Piece :: updateLegalMoves()
                     if(parent.Pieces[28].previousPosX==-1 && parent.getPiece(1,7)==0 && parent.getPiece(2,7)==0 && parent.getPiece(3,7)==0 && !parent.blackKingInCheck)
                     {
                         parent.updateBoard(4,7,0);
-                        parent.updateBoard(3,7,60);
+                        parent.updateBoard(3,7,61);
                         if(checkChecks(3,7,true)) castleCheck=false;
                         parent.updateBoard(3,7,0);
-                        parent.updateBoard(2,7,60);
+                        parent.updateBoard(2,7,61);
                         if(checkChecks(2,7,true)) castleCheck=false;
                         if(castleCheck)
                         {
@@ -597,15 +596,15 @@ void Piece :: updateLegalMoves()
                             ++legalMovesAmmount;
                         }
                         parent.updateBoard(2,7,0);
-                        parent.updateBoard(4,7,60);
+                        parent.updateBoard(4,7,61);
                     }
                     if(parent.Pieces[29].previousPosX==-1 && parent.getPiece(5,7)==0 && parent.getPiece(6,7)==0 && !parent.blackKingInCheck)
                     {
                         parent.updateBoard(4,7,0);
-                        parent.updateBoard(5,7,60);
+                        parent.updateBoard(5,7,61);
                         if(checkChecks(5,7,true)) castleCheck=false;
                         parent.updateBoard(5,7,0);
-                        parent.updateBoard(6,7,60);
+                        parent.updateBoard(6,7,61);
                         if(checkChecks(6,7,true)) castleCheck=false;                        
                         if(castleCheck)
                         {
@@ -614,7 +613,7 @@ void Piece :: updateLegalMoves()
                             ++legalMovesAmmount;
                         }
                         parent.updateBoard(6,7,0);
-                        parent.updateBoard(4,7,60);   
+                        parent.updateBoard(4,7,61);   
                     }
                 }
             }
