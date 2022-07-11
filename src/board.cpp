@@ -523,10 +523,12 @@ void Piece :: updateLegalMoves()
             if(type==60)
             {
                 if(checkChecks(4,0,0)) parent.whiteKingInCheck=true;
+                else                   parent.whiteKingInCheck=false;
             }
             else
             {
                 if(checkChecks(4,7,0)) parent.blackKingInCheck=true;
+                else                   parent.blackKingInCheck=false;
             }
             condCheck(1,1);
             condCheck(1,-1);
