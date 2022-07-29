@@ -1,38 +1,13 @@
 #define GLFW_DLL
 #define STB_IMAGE_IMPLEMENTATION
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include "stb_image.h"
 
-#include <iostream>
 #include <windows.h>
 #include "board.h"
+#include "logic.h"
 
 Board chessBoard;
 
-// Vec3 for colour
-struct vec3
-{
-	GLfloat x,y,z;
-};
-// Vec2 for texture coordinates
-struct vec2
-{
-	GLfloat x,y;
-};
-// Object draw information
-struct nodes{
-	GLfloat x1,y1,z1; vec3 colour1; vec2 cord1;
-	GLfloat x2,y2,z2; vec3 colour2; vec2 cord2;
-	GLfloat x3,y3,z3; vec3 colour3; vec2 cord3;
-	GLfloat x4,y4,z4; vec3 colour4; vec2 cord4;
-};
-// Object indices information
-struct indices{
-	unsigned int i1,i2,i3,i4,i5,i6;
-};
 
-//Global variables
 int 	resolutionX=1200,resolutionY=900;
 float 	resulutionRatio = (float)resolutionY/(float)resolutionX;
 float 	incrementY = 0.225f;
@@ -52,34 +27,6 @@ vec2	cord1 = {0.0f,0.0f},
 		cord4 = {1.0f,0.0f};
 
 vec3 baseWhite={1.0f,1.0f,1.0f};
-
-
-
-const char *vertexShaderSource ="#version 330 core\n"
-    "layout (location = 0) in vec3 pos;\n"
-    "layout (location = 1) in vec3 color;\n"
-	"layout (location = 2) in vec2 textureCord;\n"
-    "out vec3 outColor;\n"
-	"out vec2 outTextureCord;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(pos,1.0f);\n"
-    "   outColor = color;\n"
-	"   outTextureCord = vec2(textureCord);\n"
-    "}\0";
-
-const char *fragmentShaderSource = "#version 330 core\n"
-    "out vec4 fragColor;\n"
-    "in vec3 outColor;\n"
-	"in vec2 outTextureCord;\n"
-
-	"uniform sampler2D outTexture;\n"
-    "void main()\n"
-    "{\n"
-    "   fragColor = texture(outTexture, outTextureCord)*vec4(outColor, 1.0) ;\n"
-//    "   fragColor = vec4(outColor, 1.0);\n"
-    "}\n\0";
-
 
 //Create object draw information
 nodes square(GLfloat X,GLfloat Y,vec3 colour)
@@ -115,72 +62,32 @@ nodes paddingSquare(GLfloat X,GLfloat Y,GLfloat pX,GLfloat pY, vec3 colour)
 	};
 }
 
+const char *vertexShaderSource ="#version 330 core\n"
+    "layout (location = 0) in vec3 pos;\n"
+    "layout (location = 1) in vec3 color;\n"
+	"layout (location = 2) in vec2 textureCord;\n"
+    "out vec3 outColor;\n"
+	"out vec2 outTextureCord;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(pos,1.0f);\n"
+    "   outColor = color;\n"
+	"   outTextureCord = vec2(textureCord);\n"
+    "}\0";
 
-// Generate texture
-void addTexture(GLuint* texture,std::string input)
-{
-	//std::string basePath = __FILE__;
-	//basePath = basePath.substr(0, basePath.length() - 12);
-	//basePath += input;
-	//basePath=input;
-	char* path;
-	path = &input[0];
-	//std::cout<<path<<"\n";
-    glGenTextures(1, texture);
-    glBindTexture(GL_TEXTURE_2D, *texture); 
-	stbi_set_flip_vertically_on_load(true); 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    int width, height, nrChannels;
-	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 4);
+const char *fragmentShaderSource = "#version 330 core\n"
+    "out vec4 fragColor;\n"
+    "in vec3 outColor;\n"
+	"in vec2 outTextureCord;\n"
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+	"uniform sampler2D outTexture;\n"
+    "void main()\n"
+    "{\n"
+    "   fragColor = texture(outTexture, outTextureCord)*vec4(outColor, 1.0) ;\n"
+//    "   fragColor = vec4(outColor, 1.0);\n"
+    "}\n\0";
 
-    stbi_image_free(data);
-}
-// Generate Components for rendering
-void generateBufferData(GLuint* inputAB,GLuint* inputEAB,GLuint* inputVA,unsigned int bufferSize)
-{
-	glGenBuffers(1,inputAB);
-	glGenBuffers(1,inputEAB);
-	glGenVertexArrays(1,inputVA);
 
-	glBindVertexArray(*inputVA);
-	glBindBuffer(GL_ARRAY_BUFFER,*inputAB);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,*inputEAB);
-
-	glBufferData(GL_ARRAY_BUFFER,bufferSize*32*sizeof(GLfloat),nullptr,GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize*6*sizeof(unsigned int), nullptr, GL_DYNAMIC_DRAW);
-}
-
-void generateStaticBufferData(GLuint* inputAB,GLuint* inputEAB,GLuint* inputVA,nodes* inputVertices,indices* inputIndices,unsigned int bufferSize)
-{
-	glGenBuffers(1,inputAB);
-	glGenBuffers(1,inputEAB);
-	glGenVertexArrays(1,inputVA);
-
-	glBindVertexArray(*inputVA);
-	glBindBuffer(GL_ARRAY_BUFFER,*inputAB);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,*inputEAB);
-
-	glBufferData(GL_ARRAY_BUFFER,bufferSize*32*sizeof(GLfloat),inputVertices,GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize*6*sizeof(unsigned int), inputIndices, GL_STATIC_DRAW);
-}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -450,17 +357,17 @@ int main()
 	}
 	// Create baord
 	vec3 boardColour = {0.9f,0.9f,0.9f};
+	indices baseIndices[6] = 
+	{
+		0,1,3,
+		1,3,2	
+	};
 	nodes boardVertices[] = 
 	{
 		baseX1, baseY1, 0.0f, boardColour, cord1,
         baseX1, -baseY1, 0.0f, boardColour, cord2,
         baseX3,-baseY1, 0.0f, boardColour, cord3,
         baseX3, baseY1, 0.0f, boardColour, cord4	
-	};
-	indices boardIndices[] = 
-	{
-		0,1,3,
-		1,3,2	
 	};
 	// Create Button Tray
 	vec3 trayColour = {0.4f,0.4f,0.4f};
@@ -470,11 +377,6 @@ int main()
         baseX4, -baseY1, 0.0f, trayColour, cord2,
         -baseX1,-baseY1, 0.0f, trayColour, cord3,
         -baseX1, baseY1, 0.0f, trayColour, cord4	
-	};
-	indices trayIndices[] = 
-	{
-		0,1,3,
-		1,3,2	
 	};
 	// Declare GL objects
 	GLuint piecesAB,piecesEAB,piecesVA,boardAB,boardVA,boardEAB,legalsAB,legalsEAB,legalsVA,trayAB,trayEAB,trayVA;
@@ -505,8 +407,8 @@ int main()
 	addTexture(&boardImage,"../img/chessBoard.png");
 	
 	// Generate draw data
-	generateStaticBufferData(&boardAB,&boardEAB,&boardVA,boardVertices,boardIndices,1);
-	generateStaticBufferData(&trayAB,&trayEAB,&trayVA,trayVertices,trayIndices,1);
+	generateStaticBufferData(&boardAB,&boardEAB,&boardVA,boardVertices,baseIndices,1);
+	generateStaticBufferData(&trayAB,&trayEAB,&trayVA,trayVertices,baseIndices,1);
 	generateBufferData(&piecesAB,&piecesEAB,&piecesVA,64);
 	generateBufferData(&legalsAB,&legalsEAB,&legalsVA,32);
 

@@ -1,8 +1,13 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include<utility>
-#include<vector>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <utility>
+#include <vector>
+#include <iostream>
+
+
 
 class Board;
 
@@ -99,7 +104,6 @@ class Board{
             };
 
 };
-
 
 
 #endif //

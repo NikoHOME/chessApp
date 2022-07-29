@@ -1,5 +1,7 @@
 #include "board.h"
-#include <iostream>
+
+
+
 
 short Board::getPiece(short x, short y)
 {
