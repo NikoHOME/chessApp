@@ -82,6 +82,51 @@ class Board{
         void Debug();
         bool whiteKingInCheck=false;
         bool blackKingInCheck=false;
+        void reset()
+        {
+            short tempTab[8][8]= 
+            {
+                {40,10,0,0,0,0,11,41},
+                {20,10,0,0,0,0,11,21},
+                {30,10,0,0,0,0,11,31},
+                {50,10,0,0,0,0,11,51},
+                {60,10,0,0,0,0,11,61},
+                {30,10,0,0,0,0,11,31},
+                {20,10,0,0,0,0,11,21},
+                {40,10,0,0,0,0,11,41}
+
+            };
+            for(int i=0;i<8;i++) for(int j=0;j<8;j++)
+            {
+                tab[i][j]=tempTab[i][j];
+            }
+            short tempMove[64]=
+            {
+                0,1, 1,1, 2,1, 3,1, 4,1, 5,1, 6,1, 7,1,
+                1,0, 6,0,
+                2,0, 5,0,
+                0,0, 7,0,
+                3,0, 4,0,
+
+                0,6, 1,6, 2,6, 3,6, 4,6, 5,6, 6,6, 7,6,
+                1,7, 6,7,
+                2,7, 5,7,
+                0,7, 7,7,
+                3,7, 4,7             
+            };
+            for(int i=0;i<64;i+=2)
+            {
+                Pieces[i/2].posX=tempMove[i];
+                Pieces[i/2].posY=tempMove[i+1];
+                Pieces[i/2].isOnBoard=true;
+            }
+            for(int i=0;i<32;++i)
+            {
+                Pieces[i].updateLegalMoves();
+            }
+
+            turnNumber=0;
+        }
 
         Piece Pieces[32] = 
             {
