@@ -1,4 +1,71 @@
 #include "logic.h"
+#define cord1 {0.0f,0.0f}
+#define cord2 {0.0f,1.0f}
+#define cord3 {1.0f,1.0f}
+#define cord4 {1.0f,0.0f}
+
+
+nodes rectangle(GLfloat X1,GLfloat Y1,GLfloat X2,GLfloat Y2,vec3 colour)
+{
+	return						
+	{
+		X1, Y1, 0.0f, colour, cord1,
+        X1, Y2, 0.0f, colour, cord2,
+        X2, Y2, 0.0f, colour, cord3,
+        X2, Y1, 0.0f, colour, cord4		
+	};
+};
+
+nodes centredRectangle(GLfloat X1,GLfloat Y1,GLfloat pX,GLfloat pY,vec3 colour)
+{
+	return						
+	{
+		X1-pX, Y1-pY, 0.0f, colour, cord1,
+        X1-pX, Y1+pY, 0.0f, colour, cord2,
+        X1+pX, Y1+pY, 0.0f, colour, cord3,
+        X1+pX, Y1-pY, 0.0f, colour, cord4		
+	};
+};
+
+nodes paddingRectangle(GLfloat X1,GLfloat Y1,GLfloat X2,GLfloat Y2,GLfloat pX,GLfloat pY,vec3 colour)
+{
+	return						
+	{
+		X1+pX, Y1+pY, 0.0f, colour, cord1,
+        X1+pX, Y2-pY, 0.0f, colour, cord2,
+        X2-pX, Y2-pY, 0.0f, colour, cord3,
+        X2-pX, Y1+pY, 0.0f, colour, cord4		
+	};
+};
+
+//Create removed object draw information
+nodes voidSquare()
+{
+	return						
+	{
+		0.0f, 0.0f, 0.0f, {0.0f,0.0f,0.0f}, {0.0f,0.0f},
+        0.0f, 0.0f, 0.0f, {0.0f,0.0f,0.0f}, {0.0f,0.0f},
+        0.0f, 0.0f, 0.0f, {0.0f,0.0f,0.0f}, {0.0f,0.0f},
+        0.0f, 0.0f, 0.0f, {0.0f,0.0f,0.0f}, {0.0f,0.0f}	
+	};
+};
+
+void generateButtonTray(nodes* menuVertices,std::vector <nodes>* buttonVertices,std::vector<indices>* buttonIndices,GLfloat menuX1,GLfloat menuY1,GLfloat menuX2, GLfloat menuY2,short buttonNum,GLfloat buttonSize,GLfloat buttonOffset,GLfloat buttonPadding, vec3 menuColour, vec3 buttonColour)
+{
+	GLfloat center=(menuX1+menuX2)/2;
+	*menuVertices = rectangle(menuX1,menuY1,menuX2,menuY2,menuColour);
+	for(unsigned int i=0;i<4*buttonNum;i+=4)
+	{
+		buttonVertices->push_back(paddingRectangle(center,menuY2-buttonSize-buttonOffset,center,menuY2-buttonOffset,-buttonSize,0.0f,buttonColour));
+		buttonIndices->push_back(
+		{
+			i,i+1,i+3,
+			i+1,i+3,i+2
+		});
+		buttonOffset+=buttonPadding+buttonSize;
+	}
+};
+
 
 
 void addTexture(GLuint* texture,std::string input)

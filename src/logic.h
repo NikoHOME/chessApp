@@ -5,6 +5,7 @@
 #define cor3 {1.0f,1.0f}
 #define cor4 {1.0f,0.0f}
 #include <glad/glad.h>
+#include <vector>
 #include <GLFW/glfw3.h>
 #include "stb_image.h"
 #include <iostream>
@@ -30,6 +31,12 @@ struct indices{
 	unsigned int i1,i2,i3,i4,i5,i6;
 };
 
+nodes rectangle(GLfloat X1,GLfloat Y1,GLfloat X2,GLfloat Y2,vec3 colour);
+nodes centredRectangle(GLfloat X1,GLfloat Y1,GLfloat pX,GLfloat pY,vec3 colour);
+nodes paddingRectangle(GLfloat X1,GLfloat Y1,GLfloat X2,GLfloat Y2,GLfloat pX,GLfloat pY,vec3 colour);
+void generateButtonTray(nodes* menuVertices,std::vector <nodes>* buttonVertices,std::vector<indices>* buttonIndices,GLfloat menuX1,GLfloat menuY1,GLfloat menuX2, GLfloat menuY2,short buttonNum,GLfloat buttonSize,GLfloat buttonOffset,GLfloat buttonPadding, vec3 menuColour, vec3 buttonColour);
+
+nodes voidSquare();
 
 void addTexture(GLuint* texture,std::string input);
 void generateBufferData(GLuint* inputAB,GLuint* inputEAB,GLuint* inputVA,unsigned int bufferSize);

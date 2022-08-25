@@ -28,8 +28,9 @@ vec2	cord1 = {0.0f,0.0f},
 
 vec3 baseWhite={1.0f,1.0f,1.0f};
 
-//Create object draw information
-nodes square(GLfloat X,GLfloat Y,vec3 colour)
+
+
+nodes pieceSquare(GLfloat X,GLfloat Y,vec3 colour)
 {
 	return						
 	{
@@ -39,19 +40,8 @@ nodes square(GLfloat X,GLfloat Y,vec3 colour)
         baseX2+X, baseY1+Y, 0.0f, colour, cord4		
 	};
 }
-//Create removed object draw information
-nodes voidSquare()
-{
-	return						
-	{
-		0.0f, 0.0f, 0.0f, {0.0f,0.0f,0.0f}, {0.0f,0.0f},
-        0.0f, 0.0f, 0.0f, {0.0f,0.0f,0.0f}, {0.0f,0.0f},
-        0.0f, 0.0f, 0.0f, {0.0f,0.0f,0.0f}, {0.0f,0.0f},
-        0.0f, 0.0f, 0.0f, {0.0f,0.0f,0.0f}, {0.0f,0.0f}	
-	};
-}
 //Create object information with padding
-nodes paddingSquare(GLfloat X,GLfloat Y,GLfloat pX,GLfloat pY, vec3 colour)
+nodes piecePaddingSquare(GLfloat X,GLfloat Y,GLfloat pX,GLfloat pY, vec3 colour)
 {
 	return						
 	{
@@ -61,6 +51,24 @@ nodes paddingSquare(GLfloat X,GLfloat Y,GLfloat pX,GLfloat pY, vec3 colour)
     	baseX2+X-pX, baseY1+Y+pY, 0.0f, colour, cord4	
 	};
 }
+/*
+void generateButtonTray(nodes* menuVertices,std::vector <nodes>* buttonVertices,std::vector<indices>* buttonIndices,GLfloat menuX1,GLfloat menuY1,GLfloat menuX2, GLfloat menuY2,short buttonNum,GLfloat buttonSize,GLfloat buttonOffset,GLfloat buttonPadding, vec3 menuColour, vec3 buttonColour)
+{
+	GLfloat center=(menuX1+menuX2)/2;
+	*menuVertices = rectangle(menuX1,menuY1,menuX2,menuY2,menuColour);
+	for(unsigned int i=0;i<4*buttonNum;i+=4)
+	{
+		buttonVertices->push_back(paddingRectangle(center,menuY2-buttonSize-buttonOffset,center,menuY2-buttonOffset,-buttonSize,0.0f,buttonColour));
+		buttonIndices->push_back(
+		{
+			i,i+1,i+3,
+			i+1,i+3,i+2
+		});
+		buttonOffset+=buttonPadding+buttonSize;
+	}
+}
+
+*/
 
 const char *vertexShaderSource ="#version 330 core\n"
     "layout (location = 0) in vec3 pos;\n"
@@ -101,10 +109,10 @@ std::vector <indices> pieceIndices,legalsIndices,menuButtonsIndices,boardButtons
 
 // Declare runtime variables
 double windowPosX,windowPosY;
-bool onBoard,onLegal,isSelecting=false,isWhiteTurn=true,boardChanged=true;
+bool onBoard,onLegal,isSelecting=false,isWhiteTurn=true,boardChanged=true,stopRender=false;;
 short currentSelection=-1,legalSelection=-1,previousSelection=-1,tempmin,tempmax;
 short tickspersecond = 1000/5;
-short gameState=0;
+short gameState=0,gameOutcome=0;;
 float posX,posY;
 short selectedButton;
 void mouse_button_callback_menu(GLFWwindow* window, int button, int action, int mods);
@@ -121,7 +129,7 @@ void resetPieceVertices()
 
 		pieceVertices.push_back
 		({
-			paddingSquare(posX,posY,paddingX,paddingY,baseWhite)
+			piecePaddingSquare(posX,posY,paddingX,paddingY,baseWhite)
 		});
     }
 
@@ -163,6 +171,8 @@ void mouse_button_callback_board(GLFWwindow* window, int button, int action, int
 					chessBoard.reset();
 					resetPieceVertices();
 					isWhiteTurn=true;
+					stopRender=false;
+					gameOutcome=0;
 					//delete &chessBoard;
 					break;
 				case 1:
@@ -170,7 +180,9 @@ void mouse_button_callback_board(GLFWwindow* window, int button, int action, int
 					//chessBoard.Debug();
 					chessBoard.reset();
 					resetPieceVertices();
+					gameOutcome=0;
 					isWhiteTurn=true;
+					stopRender=false;
 					break;
 			}
 		}
@@ -217,7 +229,7 @@ void mouse_button_callback_board(GLFWwindow* window, int button, int action, int
     					posY=chessBoard.Pieces[currentSelection].legalMoves[i].second*incrementY;
 						legalsVertices.push_back
 						({
-							square(posX,posY,baseWhite)	
+							pieceSquare(posX,posY,baseWhite)	
 						});
 					}	
 					for(unsigned int i=0;i<legalsVertices.size()*4;i+=4)
@@ -273,7 +285,7 @@ void mouse_button_callback_board(GLFWwindow* window, int button, int action, int
 					chessBoard.Pieces[currentSelection].movePiece(tempPosX,tempPosY);
 					pieceVertices[currentSelection] =
 					{
-						paddingSquare(posX,posY,paddingX,paddingY,baseWhite)
+						piecePaddingSquare(posX,posY,paddingX,paddingY,baseWhite)
 					};
 
 					//Reset legal overlay and come back to selecting mode
@@ -320,7 +332,7 @@ void mouse_button_callback_board(GLFWwindow* window, int button, int action, int
 
 						pieceVertices[temp] =
 						{
-							paddingSquare(posX,posY,paddingX,paddingY,baseWhite)
+							piecePaddingSquare(posX,posY,paddingX,paddingY,baseWhite)
 						};
 						chessBoard.Pieces[temp].movePiece(tempPosX,tempPosY);
 					}
@@ -384,6 +396,8 @@ void mouse_button_callback_menu(GLFWwindow* window, int button, int action, int 
 					boardChanged=true;
 					isSelecting=false;
 					isWhiteTurn=true;
+					stopRender=false;
+					gameOutcome=0;
 					glfwSetMouseButtonCallback(window, mouse_button_callback_board);
 					gameState=1;
 					break;
@@ -393,6 +407,17 @@ void mouse_button_callback_menu(GLFWwindow* window, int button, int action, int 
 
 	}
 }
+
+void mouse_button_callback_checkmate(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		stopRender=true;
+		glfwSetMouseButtonCallback(window, mouse_button_callback_board);
+	}
+}
+
+
 
 void window_focus_callback(GLFWwindow* window, int focused)
 {
@@ -474,71 +499,31 @@ int main()
 	}
 	// Create baord
 	vec3 boardColour = {0.9f,0.9f,0.9f};
-	indices baseIndices[6] = 
+	indices baseIndices[1] = 
 	{
 		0,1,3,
 		1,3,2	
 	};
-	nodes boardVertices[] = 
-	{
-		baseX1, baseY1, 0.0f, boardColour, cord1,
-        baseX1, -baseY1, 0.0f, boardColour, cord2,
-        baseX3,-baseY1, 0.0f, boardColour, cord3,
-        baseX3, baseY1, 0.0f, boardColour, cord4	
-	};
+	nodes boardVertices[1];
+	boardVertices[0] = rectangle(baseX1,baseY1,baseX3,-baseY1,boardColour);
+
 	// Create Button Tray
 	vec3 trayColour = {0.4f,0.4f,0.4f};
+
 	GLfloat trayX1=baseX3+incrementX/2,tButtonPadding=0.1f,tButtonSize=0.1f,trayCenter=(trayX1-baseX1)/2,tButtonOffset=tButtonPadding;
-	nodes trayVertices[] = 
-	{
-		trayX1, baseY1, 0.0f, trayColour, cord1,
-        trayX1, -baseY1, 0.0f, trayColour, cord2,
-        -baseX1,-baseY1, 0.0f, trayColour, cord3,
-        -baseX1, baseY1, 0.0f, trayColour, cord4	
-	};
+	nodes trayVertices[1];
+	generateButtonTray(&trayVertices[0],&boardButtonsVertices,&boardButtonsIndices,trayX1,baseY1,-baseX1,-baseY1,2,tButtonSize,tButtonOffset,tButtonPadding,trayColour,boardColour);
 
-	for(unsigned int i=0;i<8;i+=4)
-	{
-		boardButtonsVertices.push_back(
-		{
-			trayCenter-tButtonSize, -baseY1-tButtonSize-tButtonOffset, 0.0f, boardColour, cord1,
-			trayCenter-tButtonSize, -baseY1-tButtonOffset, 0.0f, boardColour, cord2,
-			trayCenter+tButtonSize, -baseY1-tButtonOffset, 0.0f, boardColour, cord3,
-			trayCenter+tButtonSize, -baseY1-tButtonSize-tButtonOffset, 0.0f, boardColour, cord4
-		});
-		boardButtonsIndices.push_back(
-		{
-			i,i+1,i+3,
-			i+1,i+3,i+2
-		});
-		tButtonOffset+=tButtonPadding+tButtonSize;
-	}
-
+	// Create Menu Button Tray
 	GLfloat menuX1=-0.8f,menuX2=0.8f,menuY1=-0.8f,menuY2=0.8f,mButtonPadding=0.05f,mButtonSize=0.25f,menuCenter=(menuX1+menuX2)/2,mButtonOffset=mButtonPadding;
+	nodes menuTrayVertices[1];
+	generateButtonTray(&menuTrayVertices[0],&menuButtonsVertices,&menuButtonsIndices,menuX1,menuY1,menuX2,menuY2,2,mButtonSize,mButtonOffset,mButtonPadding,trayColour,boardColour);
 	
-	nodes menuTrayVertices[] =
-	{
-		menuX1, menuY1, 0.0f, trayColour, cord1,
-		menuX1, menuY2, 0.0f, trayColour, cord2,
-		menuX2,  menuY2, 0.0f, trayColour, cord3,
-		menuX2,  menuY1, 0.0f, trayColour, cord4
-	};
-	for(unsigned int i=0;i<8;i+=4)
-	{
-		menuButtonsVertices.push_back(
-		{
-			menuCenter-mButtonSize, menuY2-mButtonSize-mButtonOffset, 0.0f, boardColour, cord1,
-			menuCenter-mButtonSize, menuY2-mButtonOffset, 0.0f, boardColour, cord2,
-			menuCenter+mButtonSize,  menuY2-mButtonOffset, 0.0f, boardColour, cord3,
-			menuCenter+mButtonSize,  menuY2-mButtonSize-mButtonOffset, 0.0f, boardColour, cord4
-		});
-		menuButtonsIndices.push_back(
-		{
-			i,i+1,i+3,
-			i+1,i+3,i+2
-		});
-		mButtonOffset+=mButtonPadding+mButtonSize;
-	}
+	GLfloat endMenuOffset=0.25f,endImgSize=0.2f;
+	nodes endMenuVertices[1];
+	endMenuVertices[0] = paddingRectangle(baseX1,baseY1,baseX3,-baseY1,endMenuOffset,endMenuOffset*2,trayColour);
+	nodes endImgVertices[1];
+	endImgVertices[0] = centredRectangle((baseX1+baseX3)/2,0.0f,endImgSize*2,endImgSize,boardColour);
 
 
 
@@ -549,7 +534,9 @@ int main()
 			trayAB,trayEAB,trayVA,
 			boardButtonsAB,boardButtonsEAB,boardButtonsVA,
 			menuTrayAB,menuTrayEAB,menuTrayVA,
-			menuButtonsAB,menuButtonsEAB,menuButtonsVA;
+			menuButtonsAB,menuButtonsEAB,menuButtonsVA,
+			endMenuAB,endMenuEAB,endMenuVA,
+			endImgAB,endImgEAB,endImgVA;
 
 
 
@@ -561,7 +548,8 @@ int main()
 			whiteRook,blackRook,
 			
 			legalDot,blank,boardImage,
-			computerButton,otbButton,exitButton,resetButton;
+			computerButton,otbButton,exitButton,resetButton,
+			blackWonImg,whiteWonImg,drawImg;
 
 	// Create all textures
 	addTexture(&whitePawn,"../img/pawnW.png");
@@ -583,11 +571,16 @@ int main()
 	addTexture(&otbButton,"../img/overTheBoard.png");
 	addTexture(&exitButton,"../img/exit.png");
 	addTexture(&resetButton,"../img/reset.png");
+	addTexture(&blackWonImg,"../img/blackwon.png");
+	addTexture(&whiteWonImg,"../img/whitewon.png");
+	addTexture(&drawImg,"../img/draw.png");
 	
 	// Generate draw data
 	generateStaticBufferData(&boardAB,&boardEAB,&boardVA,boardVertices,baseIndices,1);
 	generateStaticBufferData(&trayAB,&trayEAB,&trayVA,trayVertices,baseIndices,1);
 	generateStaticBufferData(&menuTrayAB,&menuTrayEAB,&menuTrayVA,menuTrayVertices,baseIndices,1);
+	generateStaticBufferData(&endMenuAB,&endMenuEAB,&endMenuVA,endMenuVertices,baseIndices,1);
+	generateStaticBufferData(&endImgAB,&endImgEAB,&endImgVA,endImgVertices,baseIndices,1);
 	generateStaticBufferData(&menuButtonsAB,&menuButtonsEAB,&menuButtonsVA,&menuButtonsVertices.front(),&menuButtonsIndices.front(),2);
 	generateStaticBufferData(&boardButtonsAB,&boardButtonsEAB,&boardButtonsVA,&boardButtonsVertices.front(),&boardButtonsIndices.front(),2);
 	generateBufferData(&piecesAB,&piecesEAB,&piecesVA,64);
@@ -608,12 +601,10 @@ int main()
 
 	int whiteLegalsSum=0,blackLegalsSum=0;
 
-
 	double lastTime = glfwGetTime(),frameRate=60,currentTime;
 	int nbFrames = 0;
 
 	
-
 	glfwSetMouseButtonCallback(window, mouse_button_callback_menu);
 
 	while(!glfwWindowShouldClose(window))
@@ -657,7 +648,7 @@ int main()
 						glClear(GL_COLOR_BUFFER_BIT);
 
 						//Draw board
-						if(boardChanged)
+						if(boardChanged || gameOutcome!=0)
 						{
 							//chessBoard.Debug();
 							glBindVertexArray(boardVA);
@@ -757,23 +748,57 @@ int main()
 							glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(30*sizeof(indices)));
 							glBindTexture(GL_TEXTURE_2D, blackKing);
 							glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,(void*)(31*sizeof(indices)));
-							//glBindTexture(GL_TEXTURE_2D,0);
 
-							// Update legal moves overlay data
-							glBindVertexArray(legalsVA);
-							glBindBuffer(GL_ARRAY_BUFFER,legalsAB);
-							glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(GLfloat)*legalsVertices.size()*32,&legalsVertices[0]);
-							glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,legalsEAB);	
-							glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,0,sizeof(unsigned int)*legalsIndices.size()*6,&legalsIndices[0]);
+							if(gameOutcome!=0 && !stopRender)
+							{
+								glfwSetMouseButtonCallback(window, mouse_button_callback_checkmate);
+							}
+							
+							if(!stopRender) switch(gameOutcome)
+							{
+								case 0:
+									glBindVertexArray(legalsVA);
+									glBindBuffer(GL_ARRAY_BUFFER,legalsAB);
+									glBufferSubData(GL_ARRAY_BUFFER,0,sizeof(GLfloat)*legalsVertices.size()*32,&legalsVertices[0]);
+									glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,legalsEAB);	
+									glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,0,sizeof(unsigned int)*legalsIndices.size()*6,&legalsIndices[0]);
 
-							// Draw legal moves
-							//glBindTexture(GL_TEXTURE_2D, 1.0f);
-							glBindTexture(GL_TEXTURE_2D, legalDot);
-							glDrawElements(GL_TRIANGLES, legalsIndices.size()*6, GL_UNSIGNED_INT,0);
-							glBindTexture(GL_TEXTURE_2D,0);
+									// Draw legal moves
+									//glBindTexture(GL_TEXTURE_2D, 1.0f);
+									glBindTexture(GL_TEXTURE_2D, legalDot);
+									glDrawElements(GL_TRIANGLES, legalsIndices.size()*6, GL_UNSIGNED_INT,0);
+									break;
+							
 
+								case 1:
+									glBindVertexArray(endMenuVA);
+									glBindTexture(GL_TEXTURE_2D,blank);
+									glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+
+									glBindVertexArray(endImgVA);
+									glBindTexture(GL_TEXTURE_2D,drawImg);
+									glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+									break;
+								case 2:
+									glBindVertexArray(endMenuVA);
+									glBindTexture(GL_TEXTURE_2D,blank);
+									glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+
+									glBindVertexArray(endImgVA);
+									glBindTexture(GL_TEXTURE_2D,whiteWonImg);
+									glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+									break;
+								case 3:
+									glBindVertexArray(endMenuVA);
+									glBindTexture(GL_TEXTURE_2D,blank);
+									glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+
+									glBindVertexArray(endImgVA);
+									glBindTexture(GL_TEXTURE_2D,blackWonImg);
+									glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,0);
+									break;
+							}
 							// Swap buffers
-							std::cout<<chessBoard.whiteKingInCheck<<" "<<chessBoard.blackKingInCheck<<"\n";
 							glfwSwapBuffers(window);
 							boardChanged=false;
 						}
@@ -787,38 +812,35 @@ int main()
 
 						if(baseX1<=windowPosX && -baseX1>=windowPosX && baseY1<=windowPosY && -baseY1>=windowPosY) onBoard=true;
 
-						if(chessBoard.whiteKingInCheck)
+						whiteLegalsSum=0;
+						blackLegalsSum=0;
+						for(int i=0;i<16 && whiteLegalsSum<=0;++i)
 						{
-							whiteLegalsSum=0;
-							for(int i=0;i<16;++i)
-							{
-								whiteLegalsSum+=chessBoard.Pieces[i].legalMovesAmmount;
-							}
-							if(whiteLegalsSum==0) 
-							{
-								std::cout<<"CHECKMATE - Black Won\n";
-								break;
-							}
+							whiteLegalsSum+=chessBoard.Pieces[i].legalMovesAmmount;
 						}
-						else if(chessBoard.blackKingInCheck)
+						for(int i=16;i<32 && blackLegalsSum<=0;++i)
 						{
-							blackLegalsSum=0;
-							for(int i=16;i<32;++i)
-							{
-								blackLegalsSum+=chessBoard.Pieces[i].legalMovesAmmount;
-							}
-							if(blackLegalsSum==0) 
-							{
-								std::cout<<"CHECKMATE - White Won\n";
-								break;
-							}			
+							blackLegalsSum+=chessBoard.Pieces[i].legalMovesAmmount;
 						}
 
-					
+						if(chessBoard.whiteKingInCheck && whiteLegalsSum==0)
+						{
+							gameOutcome=3;
+						}
+						else if(chessBoard.blackKingInCheck && blackLegalsSum==0)
+						{
+
+							gameOutcome=2;
+						}
+						else if((blackLegalsSum==0 && !isWhiteTurn )|| (whiteLegalsSum==0 && isWhiteTurn))
+						{
+							gameOutcome=1;
+						}
 					break;
 				case 2:
 					break;
 				case 3:
+					
 					break;
 			}
 		}
